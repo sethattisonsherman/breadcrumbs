@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: breadcrumbs
+      POSTGRES_DB: breadcrumbs
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - breadcrumbs-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U breadcrumbs -d breadcrumbs"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  breadcrumbs-postgres:

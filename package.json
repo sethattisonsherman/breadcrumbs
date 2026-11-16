@@ -1,0 +1,29 @@
+{
+  "name": "breadcrumbs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env server.js",
+    "build": "vite build",
+    "start": "NODE_ENV=production node --env-file-if-exists=.env server.js",
+    "test": "node --env-file-if-exists=.env --test tests/*.test.js",
+    "db:start": "docker compose -p breadcrumbs up -d db",
+    "db:stop": "docker compose -p breadcrumbs stop db",
+    "test:browser": "node tests/browser.cjs"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "lucide-react": "^0.468.0",
+    "pg": "^8.23.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "vite": "^6.1.0"
+  },
+  "engines": {
+    "node": ">=22.9.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.65.1"
+  }
+}
