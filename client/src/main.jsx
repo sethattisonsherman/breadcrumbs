@@ -39,7 +39,12 @@ import {
 } from "lucide-react";
 import { generatePlan } from "./planner";
 import "./styles.css";
-import { apiFetch, planFetch } from "./api";
+import {
+  apiFetch,
+  cancelCaptchaChallenge,
+  completeCaptchaChallenge,
+  planFetch,
+} from "./api";
 import {
   Universe,
   ConstellationGlyph,
@@ -52,6 +57,49 @@ const guideLabel = (source) =>
     : source === "pause"
       ? "TAKE A BREAK"
       : "CURATED GUIDE";
+let turnstileScriptPromise;
+function loadTurnstile() {
+  if (window.turnstile) return Promise.resolve(window.turnstile);
+  if (!turnstileScriptPromise) {
+    turnstileScriptPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src =
+        "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve(window.turnstile);
+      script.onerror = () => reject(new Error("Could not load CAPTCHA."));
+      document.head.appendChild(script);
+    });
+  }
+  return turnstileScriptPromise;
+}
+function TurnstileWidget({ siteKey, onSuccess, onError, onExpire }) {
+  const container = useRef(null);
+  const callbacks = useRef({ onSuccess, onError, onExpire });
+  callbacks.current = { onSuccess, onError, onExpire };
+  useEffect(() => {
+    let active = true;
+    let widgetId;
+    loadTurnstile()
+      .then((turnstile) => {
+        if (!active || !container.current) return;
+        widgetId = turnstile.render(container.current, {
+          sitekey: siteKey,
+          theme: "dark",
+          callback: (token) => callbacks.current.onSuccess(token),
+          "error-callback": () => callbacks.current.onError(),
+          "expired-callback": () => callbacks.current.onExpire(),
+        });
+      })
+      .catch(() => callbacks.current.onError());
+    return () => {
+      active = false;
+      if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
+    };
+  }, [siteKey]);
+  return <div ref={container} />;
+}
 const Icon = ({ name, ...p }) => {
   const C =
     {
@@ -158,6 +206,7 @@ function App() {
   const [data, setDataRaw] = useState(readData);
   const [nav, setNav] = useState("universe");
   const [modal, setModal] = useState(null);
+  const [captchaRequired, setCaptchaRequired] = useState(false);
   const [toast, setToast] = useState("");
   const [minutes, setMinutes] = useState(data.profile.minutes || 5);
   const [selected, setSelected] = useState(null);
@@ -175,6 +224,12 @@ function App() {
   const demo = !data.onboarded;
   const skills = demo ? samples : data.skills;
   const active = skills.find((s) => s.id === selected) || skills[0];
+  useEffect(() => {
+    const showCaptcha = () => setCaptchaRequired(true);
+    window.addEventListener("constellations:captcha-required", showCaptcha);
+    return () =>
+      window.removeEventListener("constellations:captcha-required", showCaptcha);
+  }, []);
   useEffect(() => {
     try {
       localStorage.setItem("breadcrumbs-v1", JSON.stringify(data));
@@ -863,6 +918,50 @@ function App() {
               </button>
             </div>
           )}
+        </Modal>
+      )}
+      {captchaRequired && (
+        <Modal
+          close={() => {
+            setCaptchaRequired(false);
+            cancelCaptchaChallenge();
+          }}
+        >
+          <div className="about-modal captcha-modal">
+            <span className="modal-kicker">
+              <Lock size={17} />
+              A QUICK SAFETY CHECK
+            </span>
+            <h2>One quick check</h2>
+            <p>
+              This helps keep automated sign-ups away so everyone can use the
+              learning guide.
+            </p>
+            <TurnstileWidget
+              siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => {
+                setCaptchaRequired(false);
+                completeCaptchaChallenge(token);
+              }}
+              onError={() => {
+                setCaptchaRequired(false);
+                cancelCaptchaChallenge();
+                setToast("The safety check could not load. Please try again.");
+              }}
+              onExpire={() => {
+                setToast("The safety check expired. Please try it again.");
+              }}
+            />
+            <button
+              className="button outlined"
+              onClick={() => {
+                setCaptchaRequired(false);
+                cancelCaptchaChallenge();
+              }}
+            >
+              Cancel
+            </button>
+          </div>
         </Modal>
       )}
     </div>

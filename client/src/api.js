@@ -13,7 +13,34 @@ const supabasePublishableKey = (
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || ""
 ).trim();
 const supabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey);
+const turnstileSiteKey = (import.meta.env.VITE_TURNSTILE_SITE_KEY || "").trim();
 let supabaseClientPromise;
+let captchaRequest;
+
+export function completeCaptchaChallenge(token) {
+  captchaRequest?.resolve(token);
+  captchaRequest = undefined;
+}
+
+export function cancelCaptchaChallenge() {
+  captchaRequest?.reject(new Error("CAPTCHA check was cancelled."));
+  captchaRequest = undefined;
+}
+
+function requestCaptchaToken() {
+  if (!turnstileSiteKey) return Promise.resolve(undefined);
+  if (captchaRequest) return captchaRequest.promise;
+
+  let resolve;
+  let reject;
+  const promise = new Promise((done, fail) => {
+    resolve = done;
+    reject = fail;
+  });
+  captchaRequest = { promise, resolve, reject };
+  window.dispatchEvent(new Event("constellations:captcha-required"));
+  return promise;
+}
 
 function getSupabaseClient() {
   if (!supabaseConfigured) throw new Error("Supabase is not configured.");
@@ -31,7 +58,10 @@ async function ensureAnonymousSession() {
   if (sessionError) throw sessionError;
   if (current.session) return current.session;
 
-  const { data, error } = await supabase.auth.signInAnonymously();
+  const captchaToken = await requestCaptchaToken();
+  const { data, error } = await supabase.auth.signInAnonymously({
+    options: captchaToken ? { captchaToken } : {},
+  });
   if (error) throw error;
   if (!data.session) throw new Error("Could not start a Supabase session.");
   return data.session;
