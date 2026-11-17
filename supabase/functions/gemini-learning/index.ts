@@ -150,6 +150,7 @@ Deno.serve(async (request) => {
       },
     );
     if (!response.ok) {
+      console.error("Gemini API returned an unsuccessful status.", response.status);
       return Response.json({ error: "Gemini could not create a plan." }, {
         status: 502,
         headers: corsHeaders,
@@ -165,7 +166,11 @@ Deno.serve(async (request) => {
       throw new Error("Invalid Gemini response");
     }
     return Response.json(plan, { headers: corsHeaders });
-  } catch {
+  } catch (error) {
+    console.error(
+      "Gemini response handling failed.",
+      error instanceof Error ? error.name : "UnknownError",
+    );
     return Response.json({ error: "Gemini could not create a plan." }, {
       status: 502,
       headers: corsHeaders,
