@@ -4,7 +4,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const assert = require("node:assert/strict");
 (async () => {
-  const root = path.resolve("dist");
+  const root = path.resolve(process.env.PAGES_DIRECTORY || "dist");
   const requests = [];
   const server = http.createServer(async (req, res) => {
     requests.push(req.url);

@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import express from "express";
-import { generatePlan } from "./src/planner.js";
+import { generatePlan } from "./client/src/planner.js";
 import { validateAIPlan } from "./ai/plan-contract.js";
 import {
   identity,

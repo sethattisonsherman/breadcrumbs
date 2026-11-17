@@ -90,12 +90,17 @@ The new mentor system prompt and strict micro-task contract apply to the OpenAI 
 
 ## GitHub Pages deployment
 
-GitHub Pages hosts static files. It cannot compile JSX or run the Node/PostgreSQL/AI API. The `Deploy Breadcrumbs to GitHub Pages` workflow installs dependencies, runs `npm run build:pages`, and deploys `dist/`. The Pages build uses the `/breadcrumbs/` base path so JavaScript and CSS resolve under the repository URL.
+GitHub Pages hosts static files. It cannot compile JSX or run the Node/PostgreSQL/AI API. The `Deploy Breadcrumbs to GitHub Pages` workflow installs dependencies, runs `npm run build:pages`, and deploys `dist/`. The same build also prepares root `index.html` and `assets/` for the existing branch-based publisher. The Pages build uses the `/breadcrumbs/` base path so JavaScript and CSS resolve under the repository URL.
 
-In repository **Settings → Pages → Build and deployment**, choose **GitHub Actions** as the source. If this setting is still configured as `main / (root)`, GitHub publishes the source HTML instead of the Vite build, which produces a blank screen. Changing this setting requires repository Pages administration permission.
+The repository supports both Pages sources. With **GitHub Actions**, the workflow deploys `dist/`. With the existing **Deploy from a branch → main / (root)** setting, Pages serves the generated root `index.html` and `assets/`. Editable frontend files live in `client/`; Vite uses `client/index.html` for development. Run `npm run build:pages` and commit the generated root HTML/assets alongside source changes before pushing. No Pages administration permission is needed for the branch-based setup.
 
 Without a backend URL, the Pages build uses curated practice tasks and saves progress in the browser. Onboarding, practice, constellations, notes, and export remain usable. It does not claim to be connected to the database. Run `npm run build:pages && npm run test:pages` to verify this deployment mode locally.
 
 To connect a hosted Node backend, set the repository's **Actions variable** `VITE_API_BASE_URL` to its public HTTPS origin and rerun the deployment workflow. The backend must allow credentialed requests from `https://sethattisonsherman.github.io` and use cookie settings appropriate to that deployment. A Supabase project origin alone does not provide this app's `/api/user`, `/api/status`, or `/api/plan` routes. The project's Gemini Edge Function is an AI proxy, not those session/storage routes.
 
 Keep `DATABASE_URL`, OpenAI/Gemini API keys, and Supabase proxy tokens only on the backend or in private server environment variables. Never put them in `VITE_` build variables; those are visible to every visitor.
+
+
+### Local session while Supabase is unavailable
+
+Keep the Supabase connection in the ignored `.env`. To use a local PostgreSQL database for development, put only its local `DATABASE_URL` in an ignored `.env.local` and run `npm run dev:local`. The local override is loaded after `.env`; the production `npm start` command continues to use `.env` only. Database tests also prefer `.env.local` when present so development tests do not need to use the remote project. Never commit either environment file.

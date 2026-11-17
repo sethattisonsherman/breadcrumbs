@@ -1,5 +1,8 @@
-import { defineConfig } from "vite";
+import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig(({ mode }) => ({
-  base: mode === "pages" ? "/breadcrumbs/" : "/",
+  root: fileURLToPath(new URL('./client', import.meta.url)),
+  base: mode === 'pages' ? '/breadcrumbs/' : '/',
+  build: { outDir: '../dist', emptyOutDir: true },
 }));

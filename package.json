@@ -7,13 +7,14 @@
     "dev": "node --env-file-if-exists=.env server.js",
     "build": "vite build",
     "start": "NODE_ENV=production node --env-file-if-exists=.env server.js",
-    "test": "node --env-file-if-exists=.env --test tests/*.test.js",
+    "test": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --test tests/*.test.js",
     "db:start": "docker compose -p breadcrumbs up -d db",
     "db:stop": "docker compose -p breadcrumbs stop db",
     "test:browser": "node tests/browser.cjs",
     "db:check": "node --env-file-if-exists=.env scripts/check-database.js",
-    "build:pages": "vite build --mode pages",
-    "test:pages": "node tests/pages.cjs"
+    "build:pages": "vite build --mode pages && node scripts/publish-pages.js",
+    "test:pages": "node tests/pages.cjs",
+    "dev:local": "node --env-file-if-exists=.env --env-file-if-exists=.env.local server.js"
   },
   "dependencies": {
     "express": "^5.1.0",
