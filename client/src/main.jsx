@@ -39,13 +39,67 @@ import {
 } from "lucide-react";
 import { generatePlan } from "./planner";
 import "./styles.css";
-import { apiFetch, planFetch } from "./api";
+import {
+  apiFetch,
+  cancelCaptchaChallenge,
+  completeCaptchaChallenge,
+  planFetch,
+} from "./api";
 import {
   Universe,
   ConstellationGlyph,
   colorFor,
   shapeFor,
 } from "./constellations";
+const guideLabel = (source) =>
+  source === "ai"
+    ? "AI GUIDE"
+    : source === "pause"
+      ? "TAKE A BREAK"
+      : "CURATED GUIDE";
+let turnstileScriptPromise;
+function loadTurnstile() {
+  if (window.turnstile) return Promise.resolve(window.turnstile);
+  if (!turnstileScriptPromise) {
+    turnstileScriptPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src =
+        "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve(window.turnstile);
+      script.onerror = () => reject(new Error("Could not load CAPTCHA."));
+      document.head.appendChild(script);
+    });
+  }
+  return turnstileScriptPromise;
+}
+function TurnstileWidget({ siteKey, onSuccess, onError, onExpire }) {
+  const container = useRef(null);
+  const callbacks = useRef({ onSuccess, onError, onExpire });
+  callbacks.current = { onSuccess, onError, onExpire };
+  useEffect(() => {
+    let active = true;
+    let widgetId;
+    loadTurnstile()
+      .then((turnstile) => {
+        if (!active || !container.current) return;
+        widgetId = turnstile.render(container.current, {
+          sitekey: siteKey,
+          theme: "dark",
+          callback: (token) => callbacks.current.onSuccess(token),
+          "error-callback": () => callbacks.current.onError(),
+          "expired-callback": () => callbacks.current.onExpire(),
+        });
+      })
+      .catch(() => callbacks.current.onError());
+    return () => {
+      active = false;
+      if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
+    };
+  }, [siteKey]);
+  return <div ref={container} />;
+}
 const Icon = ({ name, ...p }) => {
   const C =
     {
@@ -152,6 +206,7 @@ function App() {
   const [data, setDataRaw] = useState(readData);
   const [nav, setNav] = useState("universe");
   const [modal, setModal] = useState(null);
+  const [captchaRequired, setCaptchaRequired] = useState(false);
   const [toast, setToast] = useState("");
   const [minutes, setMinutes] = useState(data.profile.minutes || 5);
   const [selected, setSelected] = useState(null);
@@ -169,6 +224,12 @@ function App() {
   const demo = !data.onboarded;
   const skills = demo ? samples : data.skills;
   const active = skills.find((s) => s.id === selected) || skills[0];
+  useEffect(() => {
+    const showCaptcha = () => setCaptchaRequired(true);
+    window.addEventListener("constellations:captcha-required", showCaptcha);
+    return () =>
+      window.removeEventListener("constellations:captcha-required", showCaptcha);
+  }, []);
   useEffect(() => {
     try {
       localStorage.setItem("breadcrumbs-v1", JSON.stringify(data));
@@ -859,6 +920,50 @@ function App() {
           )}
         </Modal>
       )}
+      {captchaRequired && (
+        <Modal
+          close={() => {
+            setCaptchaRequired(false);
+            cancelCaptchaChallenge();
+          }}
+        >
+          <div className="about-modal captcha-modal">
+            <span className="modal-kicker">
+              <Lock size={17} />
+              A QUICK SAFETY CHECK
+            </span>
+            <h2>One quick check</h2>
+            <p>
+              This helps keep automated sign-ups away so everyone can use the
+              learning guide.
+            </p>
+            <TurnstileWidget
+              siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+              onSuccess={(token) => {
+                setCaptchaRequired(false);
+                completeCaptchaChallenge(token);
+              }}
+              onError={() => {
+                setCaptchaRequired(false);
+                cancelCaptchaChallenge();
+                setToast("The safety check could not load. Please try again.");
+              }}
+              onExpire={() => {
+                setToast("The safety check expired. Please try it again.");
+              }}
+            />
+            <button
+              className="button outlined"
+              onClick={() => {
+                setCaptchaRequired(false);
+                cancelCaptchaChallenge();
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -1153,9 +1258,14 @@ function Adventure({ initial = "", profile, onFinish }) {
       {scene === 5 && plan && (
         <div className="first-plan">
           <span className="tag">
-            <Clock size={13} />
-            {minutes} MINUTES ·{" "}
-            {plan.source === "ai" ? "AI GUIDE" : "CURATED GUIDE"}
+            {plan.source === "pause" ? (
+              guideLabel(plan.source)
+            ) : (
+              <>
+                <Clock size={13} />
+                {minutes} MINUTES · {guideLabel(plan.source)}
+              </>
+            )}
           </span>
           <h3>{plan.title}</h3>
           <p>{plan.description}</p>
@@ -1163,7 +1273,11 @@ function Adventure({ initial = "", profile, onFinish }) {
             <Star size={15} />
             {plan.method}
           </div>
-          <small>Your path will adapt as you practice and reflect.</small>
+          <small>
+            {plan.source === "pause"
+              ? "Your new skill will be here when you are ready to practice."
+              : "Your path will adapt as you practice and reflect."}
+          </small>
         </div>
       )}
       {error && (
@@ -1322,7 +1436,9 @@ function Session({ skill, onComplete, onClose, onDefer }) {
         {skill.name.toUpperCase()}
       </span>
       <h2>
-        {phase === "practice"
+        {plan?.source === "pause"
+          ? "A little time to rest."
+          : phase === "practice"
           ? "One little step."
           : phase === "reflect"
             ? "What did you notice?"
@@ -1335,13 +1451,26 @@ function Session({ skill, onComplete, onClose, onDefer }) {
           </span>
           <p>Finding a comfortable place to begin…</p>
         </div>
+      ) : plan.source === "pause" ? (
+        <>
+          <div className="session-title">
+            <h3>{plan.title}</h3>
+            <span className="tag">TAKE A BREAK</span>
+          </div>
+          <p>{plan.description}</p>
+          <div className="reflection-note">
+            <NotebookPen size={17} />
+            {plan.method}
+          </div>
+          <button className="button primary full-width" onClick={onDefer}>
+            Take a break <ArrowRight size={16} />
+          </button>
+        </>
       ) : phase === "practice" ? (
         <>
           <div className="session-title">
             <h3>{plan.title}</h3>
-            <span className="tag">
-              {plan.source === "ai" ? "AI GUIDE" : "CURATED GUIDE"}
-            </span>
+            <span className="tag">{guideLabel(plan.source)}</span>
           </div>
           <p>{plan.description}</p>
           {(error || plan.notice) && (
@@ -1617,7 +1746,7 @@ function Preferences({ data, onSave, status, sync }) {
           <p>
             {status
               ? "Your practice adapts with an AI guide."
-              : "AI API integration is ready; a server API key is needed to activate it."}
+              : "Add the Supabase project URL and publishable key to the GitHub Pages build to activate AI practice."}
           </p>
         </div>
       </div>
