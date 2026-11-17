@@ -46,6 +46,12 @@ import {
   colorFor,
   shapeFor,
 } from "./constellations";
+const guideLabel = (source) =>
+  source === "ai"
+    ? "AI GUIDE"
+    : source === "pause"
+      ? "TAKE A BREAK"
+      : "CURATED GUIDE";
 const Icon = ({ name, ...p }) => {
   const C =
     {
@@ -1153,9 +1159,14 @@ function Adventure({ initial = "", profile, onFinish }) {
       {scene === 5 && plan && (
         <div className="first-plan">
           <span className="tag">
-            <Clock size={13} />
-            {minutes} MINUTES ·{" "}
-            {plan.source === "ai" ? "AI GUIDE" : "CURATED GUIDE"}
+            {plan.source === "pause" ? (
+              guideLabel(plan.source)
+            ) : (
+              <>
+                <Clock size={13} />
+                {minutes} MINUTES · {guideLabel(plan.source)}
+              </>
+            )}
           </span>
           <h3>{plan.title}</h3>
           <p>{plan.description}</p>
@@ -1163,7 +1174,11 @@ function Adventure({ initial = "", profile, onFinish }) {
             <Star size={15} />
             {plan.method}
           </div>
-          <small>Your path will adapt as you practice and reflect.</small>
+          <small>
+            {plan.source === "pause"
+              ? "Your new skill will be here when you are ready to practice."
+              : "Your path will adapt as you practice and reflect."}
+          </small>
         </div>
       )}
       {error && (
@@ -1322,7 +1337,9 @@ function Session({ skill, onComplete, onClose, onDefer }) {
         {skill.name.toUpperCase()}
       </span>
       <h2>
-        {phase === "practice"
+        {plan?.source === "pause"
+          ? "A little time to rest."
+          : phase === "practice"
           ? "One little step."
           : phase === "reflect"
             ? "What did you notice?"
@@ -1335,13 +1352,26 @@ function Session({ skill, onComplete, onClose, onDefer }) {
           </span>
           <p>Finding a comfortable place to begin…</p>
         </div>
+      ) : plan.source === "pause" ? (
+        <>
+          <div className="session-title">
+            <h3>{plan.title}</h3>
+            <span className="tag">TAKE A BREAK</span>
+          </div>
+          <p>{plan.description}</p>
+          <div className="reflection-note">
+            <NotebookPen size={17} />
+            {plan.method}
+          </div>
+          <button className="button primary full-width" onClick={onDefer}>
+            Take a break <ArrowRight size={16} />
+          </button>
+        </>
       ) : phase === "practice" ? (
         <>
           <div className="session-title">
             <h3>{plan.title}</h3>
-            <span className="tag">
-              {plan.source === "ai" ? "AI GUIDE" : "CURATED GUIDE"}
-            </span>
+            <span className="tag">{guideLabel(plan.source)}</span>
           </div>
           <p>{plan.description}</p>
           {(error || plan.notice) && (
@@ -1617,7 +1647,7 @@ function Preferences({ data, onSave, status, sync }) {
           <p>
             {status
               ? "Your practice adapts with an AI guide."
-              : "AI API integration is ready; a server API key is needed to activate it."}
+              : "Add the Supabase project URL and publishable key to the GitHub Pages build to activate AI practice."}
           </p>
         </div>
       </div>

@@ -27,8 +27,9 @@ jobs:
       - name: Build the production frontend
         run: npm run build:pages
         env:
-          # Public server URL only. Never put API keys in VITE_ variables.
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          # These are public browser settings. Never put secret keys in VITE_ variables.
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

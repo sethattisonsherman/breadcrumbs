@@ -31,7 +31,19 @@ The app can use Gemini through a Supabase Edge Function. The Gemini key stays in
 3. In the app server's private `.env` or host environment, set `SUPABASE_GEMINI_FUNCTION_URL` to `https://kwykvpxunzbjwfczccey.supabase.co/functions/v1/gemini-plan` and `SUPABASE_GEMINI_FUNCTION_TOKEN` to the same random token used for `GEMINI_PROXY_TOKEN`.
 4. Restart the app server. `/api/status` will report the AI guide as configured.
 
-The function disables Supabase JWT verification because this app uses a private server-to-server token instead. Keep `SUPABASE_GEMINI_FUNCTION_TOKEN` only on the app server and `GEMINI_PROXY_TOKEN` in Supabase Edge Function secrets. Never put either token or `GEMINI_API_KEY` in frontend code. For local function development, put `GEMINI_API_KEY`, `GEMINI_PROXY_TOKEN`, and `GEMINI_MODEL` in `supabase/functions/.env`; that file is ignored by Git.
+The gateway-level JWT check is disabled to keep the old private server-token path working during a transition. The function checks browser user JWTs inside its handler. Keep `SUPABASE_GEMINI_FUNCTION_TOKEN` only on the app server and `GEMINI_PROXY_TOKEN` in Supabase Edge Function secrets. Never put either token or `GEMINI_API_KEY` in frontend code. For local function development, put `GEMINI_API_KEY`, `GEMINI_PROXY_TOKEN`, and `GEMINI_MODEL` in `supabase/functions/.env`; that file is ignored by Git.
+
+### Gemini from GitHub Pages (no Node host)
+
+The GitHub Pages build can call `gemini-plan` directly. It signs visitors in anonymously with Supabase Auth, keeps progress in that browser, and does not need a Render service or a PostgreSQL connection URI. The function checks the visitor's Supabase session and allows up to 20 AI plans per user each UTC day. At the limit, the app offers a friendly break message. Each browser gets its own anonymous Supabase user. Clearing browser data or switching devices loses access to that identity and the browser's saved progress; the unused Supabase auth record may remain until it is cleaned up.
+
+1. In Supabase, enable anonymous sign-ins under **Authentication → Settings**. Supabase recommends adding CAPTCHA protection to public anonymous sign-in flows.
+2. Keep `GEMINI_API_KEY` in **Edge Functions → Secrets**. `GEMINI_MODEL` is optional. `GEMINI_PROXY_TOKEN` can remain for a Node server during a transition; the GitHub Pages browser never receives it.
+3. In GitHub, open **Settings → Secrets and variables → Actions → Variables** and add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Use the project URL and publishable key from Supabase. These two values are public browser settings. Do not add a Gemini key, Supabase secret key, or proxy token here.
+4. Connect this repository to the Supabase GitHub integration with working directory `.`. Enable production deployment from `main`. The integration applies the new `supabase/migrations` file and deploys the updated `gemini-plan` function. If you are deploying manually instead, run `npx supabase login`, `npx supabase link --project-ref <project-ref>`, `npx supabase db push`, and `npx supabase functions deploy gemini-plan` from the repository root.
+5. Merge the code changes to `main` and let GitHub Pages build finish. The Pages workflow passes the two public values into the browser build.
+
+The function validates a user JWT inside its handler because it also retains the old private server-token path. Do not remove that check or place `GEMINI_PROXY_TOKEN` in a browser variable. The daily cap is per anonymous user; CAPTCHA and Supabase Auth limits help discourage automated account creation.
 
 API requests include the skill, learning preference, duration, prior experience, and previous feedback. No API secret is sent to the browser. Learning preferences guide presentation; they are not treated as fixed cognitive learning-style categories.
 
@@ -57,7 +69,7 @@ There are no streak penalties. Practice sessions count as steps; the tree's mile
 
 ## Supabase (database only)
 
-The existing backend connects directly to Supabase PostgreSQL using `pg`. Supabase Auth is not used; the private browser-session behavior remains the same.
+The Node backend connects directly to Supabase PostgreSQL using `pg`; its private browser-session API does not use Supabase Auth. The GitHub Pages Gemini path uses anonymous Supabase Auth only to protect calls to the Edge Function.
 
 1. In your Supabase project, choose **Connect** and copy the **Session pooler** PostgreSQL URI (port 5432). This is suitable for the persistent Node server and supports IPv4 environments.
 2. Put that URI in the server’s ignored `.env` as `DATABASE_URL`. Replace the password placeholder with the project’s database password; URL-encode reserved characters. A Supabase publishable, anon, or service-role API key is not a PostgreSQL password.
@@ -94,9 +106,9 @@ GitHub Pages hosts static files. It cannot compile JSX or run the Node/PostgreSQ
 
 The repository supports both Pages sources. With **GitHub Actions**, the workflow deploys `dist/`. With the existing **Deploy from a branch → main / (root)** setting, Pages serves the generated root `index.html` and `assets/`. Editable frontend files live in `client/`; Vite uses `client/index.html` for development. Run `npm run build:pages` and commit the generated root HTML/assets alongside source changes before pushing. No Pages administration permission is needed for the branch-based setup.
 
-Without a backend URL, the Pages build uses curated practice tasks and saves progress in the browser. Onboarding, practice, constellations, notes, and export remain usable. It does not claim to be connected to the database. Run `npm run build:pages && npm run test:pages` to verify this deployment mode locally.
+Without a Node backend URL or Supabase browser settings, the Pages build uses curated practice tasks and saves progress in the browser. With the two Supabase browser settings, it calls the Gemini Edge Function and still saves progress in the browser. Onboarding, practice, constellations, notes, and export remain usable in either mode. Run `npm run build:pages && npm run test:pages` to verify the Pages build locally.
 
-To connect a hosted Node backend, set the repository's **Actions variable** `VITE_API_BASE_URL` to its public HTTPS origin and rerun the deployment workflow. The backend must allow credentialed requests from `https://sethattisonsherman.github.io` and use cookie settings appropriate to that deployment. A Supabase project origin alone does not provide this app's `/api/user`, `/api/status`, or `/api/plan` routes. The project's Gemini Edge Function is an AI proxy, not those session/storage routes.
+The Pages workflow uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to call Gemini through the Edge Function. The optional `VITE_API_BASE_URL` path remains available for a separately hosted Node backend, which provides cross-device PostgreSQL storage. A Supabase project URL alone does not provide the app's `/api/user` route.
 
 Keep `DATABASE_URL`, OpenAI/Gemini API keys, and Supabase proxy tokens only on the backend or in private server environment variables. Never put them in `VITE_` build variables; those are visible to every visitor.
 

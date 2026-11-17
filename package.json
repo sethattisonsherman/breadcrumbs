@@ -17,6 +17,7 @@
     "dev:local": "node --env-file-if-exists=.env --env-file-if-exists=.env.local server.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "express": "^5.1.0",
     "lucide-react": "^0.468.0",
     "pg": "^8.23.1",
