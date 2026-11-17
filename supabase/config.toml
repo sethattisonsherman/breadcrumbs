@@ -3,7 +3,7 @@ project_id = "breadcrumbs"
 [auth]
 enable_anonymous_sign_ins = true
 
-[functions.gemini-plan]
+[functions.gemini-learning]
 # The handler checks user JWTs for browser calls and also supports the old
 # private server token while deployments transition.
 verify_jwt = false
