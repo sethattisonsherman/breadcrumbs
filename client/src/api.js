@@ -71,7 +71,7 @@ async function callSupabaseGemini(options = {}) {
   const supabase = await getSupabaseClient();
   await ensureAnonymousSession();
   const input = JSON.parse(options.body || "{}");
-  const { data, error } = await supabase.functions.invoke("gemini-plan", {
+  const { data, error } = await supabase.functions.invoke("gemini-learning", {
     body: input,
     signal: options.signal,
   });
