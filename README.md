@@ -26,7 +26,7 @@ The app can use Gemini through a Supabase Edge Function. The Gemini key stays in
 
 1. In Supabase, open **Edge Functions → Secrets** and add `GEMINI_API_KEY`, `GEMINI_PROXY_TOKEN`, and optionally `GEMINI_MODEL`. Choose a Gemini model available on your API key's free tier. Generate a long random value for `GEMINI_PROXY_TOKEN`.
 2. Link this repository to your Supabase project with `supabase link --project-ref <project-ref>`, then deploy the function with `supabase functions deploy gemini-plan`.
-3. In the app server's private `.env` or host environment, set `SUPABASE_GEMINI_FUNCTION_URL=https://<project-ref>.supabase.co/functions/v1/gemini-plan` and `SUPABASE_GEMINI_FUNCTION_TOKEN` to the same random token used for `GEMINI_PROXY_TOKEN`.
+3. In the app server's private `.env` or host environment, set `SUPABASE_GEMINI_FUNCTION_URL` to `https://kwykvpxunzbjwfczccey.supabase.co/functions/v1/gemini-plan` and `SUPABASE_GEMINI_FUNCTION_TOKEN` to the same random token used for `GEMINI_PROXY_TOKEN`.
 4. Restart the app server. `/api/status` will report the AI guide as configured.
 
 The function disables Supabase JWT verification because this app uses a private server-to-server token instead. Keep `SUPABASE_GEMINI_FUNCTION_TOKEN` only on the app server and `GEMINI_PROXY_TOKEN` in Supabase Edge Function secrets. Never put either token or `GEMINI_API_KEY` in frontend code. For local function development, put `GEMINI_API_KEY`, `GEMINI_PROXY_TOKEN`, and `GEMINI_MODEL` in `supabase/functions/.env`; that file is ignored by Git.
