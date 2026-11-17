@@ -10,7 +10,8 @@
     "test": "node --env-file-if-exists=.env --test tests/*.test.js",
     "db:start": "docker compose -p breadcrumbs up -d db",
     "db:stop": "docker compose -p breadcrumbs stop db",
-    "test:browser": "node tests/browser.cjs"
+    "test:browser": "node tests/browser.cjs",
+    "db:check": "node --env-file-if-exists=.env scripts/check-database.js"
   },
   "dependencies": {
     "express": "^5.1.0",

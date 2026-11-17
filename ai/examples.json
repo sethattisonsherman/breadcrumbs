@@ -1,0 +1,105 @@
+[
+  {
+    "input": {
+      "action": "task",
+      "skill": "Web development",
+      "track": "hobby",
+      "level": "beginner",
+      "learning_mode": "practical",
+      "minutes": 5,
+      "available_resources": ["An existing HTML scratch file and its preview"]
+    },
+    "output": {
+      "title": "Make one button",
+      "description": "One small element is enough for this step.",
+      "steps": [
+        "In your existing scratch HTML file, type: <button>Hello</button>.",
+        "Open its preview once and look at the button.",
+        "Change Hello to your name, preview it again, then stop."
+      ],
+      "method": "Practical",
+      "reflection": "What changed when you edited the text?",
+      "estimated_seconds": 90,
+      "expected_answer": null
+    }
+  },
+  {
+    "input": {
+      "action": "task",
+      "skill": "Web development",
+      "track": "academic",
+      "level": "beginner",
+      "learning_mode": "retrieval",
+      "minutes": 2
+    },
+    "output": {
+      "title": "Recall one CSS property",
+      "description": "Try one small recall check without opening your notes.",
+      "steps": [
+        "Without looking it up, name the CSS property that sets an element's background color.",
+        "Type your best answer, even if you are unsure.",
+        "Reveal the check after your attempt; compare it, then stop."
+      ],
+      "method": "Retrieval",
+      "reflection": "What might help you recognize this property next time?",
+      "estimated_seconds": 60,
+      "expected_answer": "background-color. Example: div { background-color: blue; }"
+    }
+  },
+  {
+    "input": {
+      "action": "task",
+      "skill": "Biology",
+      "track": "academic",
+      "level": "beginner",
+      "learning_mode": "mind_mapping",
+      "minutes": 2
+    },
+    "output": {
+      "title": "Connect two cell structures",
+      "description": "A single connection can make a larger idea clearer.",
+      "steps": [
+        "Use these facts: the nucleus holds genetic instructions; ribosomes build proteins using those instructions.",
+        "Write: nucleus → ribosome, and label the arrow with the relationship in your own words.",
+        "Read your connection once and check that both structures have different roles. Stop there."
+      ],
+      "method": "Mind mapping",
+      "reflection": "Which role would you like to revisit?",
+      "estimated_seconds": 90,
+      "expected_answer": null
+    }
+  },
+  {
+    "input": {
+      "action": "task",
+      "skill": "Music theory",
+      "track": "academic",
+      "learning_mode": "elaborative",
+      "minutes": 2
+    },
+    "output": {
+      "title": "Explain a steady beat",
+      "description": "Start with a rhythm you already recognize.",
+      "steps": [
+        "Tap a slow, steady beat on your leg four times.",
+        "Explain in one sentence how that repeating beat could help two musicians start together.",
+        "Say your sentence once, then stop tapping."
+      ],
+      "method": "Elaborative",
+      "reflection": "What familiar activity also uses a shared rhythm?",
+      "estimated_seconds": 60,
+      "expected_answer": null
+    }
+  },
+  {
+    "input": {
+      "action": "defer",
+      "skill": "Guitar",
+      "feedback": "I am exhausted today."
+    },
+    "output": {
+      "action": "defer",
+      "message": "A pause makes sense today. Your constellation will be here when you’re ready."
+    }
+  }
+]

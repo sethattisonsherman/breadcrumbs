@@ -1,8 +1,8 @@
 # Breadcrumbs
 
-link to website: https://sethattisonsherman.github.io/breadcrumbs/
+Website: https://sethattisonsherman.github.io/breadcrumbs/
 
-A quiet skill-building app: choose an adventure, try a small task, reflect, and watch a skill tree grow.
+A quiet skill-building app: choose an adventure, explore a personal galaxy, try a small task, and watch skill-shaped constellations grow brighter.
 
 ## Run on your computer
 
@@ -14,7 +14,7 @@ Requires Node.js 22.9+ and Docker with Compose (or an existing PostgreSQL databa
 4. Start the app: `npm run dev`.
 5. Open <http://localhost:3000>.
 
-Set `DATABASE_URL` to a managed PostgreSQL URL to use a hosted database. Preserve the provider's TLS requirements. The application creates its tables on startup from `migrations/001_initial.sql`. The database role needs permission to create those tables. Use a private database connection and a persistent database volume.
+Set `DATABASE_URL` to a managed PostgreSQL URL to use a hosted database. Preserve the provider's TLS requirements. The application creates its tables on startup from the versioned SQL files in `migrations/`. The database role needs permission to create those tables. Use a private database connection and a persistent database volume.
 
 The supplied Compose file binds PostgreSQL to loopback only and stores data in a named volume. `npm run db:stop` stops the database without removing data. Do not remove the volume if you want to keep user data.
 
@@ -53,3 +53,36 @@ For an internet-facing launch, add account sign-in, account recovery, and a prod
 - `npm run test:browser`: tests onboarding, completing a task, field notes, database restoration, session isolation, and responsive overflow. Requires Chromium (`CHROMIUM_PATH` overrides `/usr/bin/chromium`).
 
 There are no streak penalties. Practice sessions count as steps; the tree's milestones reflect self-reported confident practice and do not certify mastery. AI task generation requires a configured key and has not been validated against a paid provider in this environment.
+
+
+## Supabase (database only)
+
+The existing backend connects directly to Supabase PostgreSQL using `pg`. Supabase Auth is not used; the private browser-session behavior remains the same.
+
+1. In your Supabase project, choose **Connect** and copy the **Session pooler** PostgreSQL URI (port 5432). This is suitable for the persistent Node server and supports IPv4 environments.
+2. Put that URI in the server’s ignored `.env` as `DATABASE_URL`. Replace the password placeholder with the project’s database password; URL-encode reserved characters. A Supabase publishable, anon, or service-role API key is not a PostgreSQL password.
+3. Keep `DATABASE_POOL_MAX=5` and `DATABASE_SCHEMA=public` unless you have deliberately provisioned another schema. The server must connect as the table owner (the project’s default `postgres` user works).
+4. Supabase hostnames automatically use `sslmode=verify-full`. If your provider requires a custom CA, download its server CA certificate and set `DATABASE_CA_CERT_PATH` to a file inside the ignored `secrets/` folder. Do not disable certificate verification.
+5. Run `npm run db:check`, then restart the Node server. It applies both migrations, including enabling row-level security with no public client policies. User data is accessed through the Node API, not directly through Supabase’s browser Data API.
+
+Do not put database URLs in `VITE_` variables or frontend code. The live Supabase connection cannot be verified until you configure your project’s connection string. Changing the connection URL selects a different database; it does not copy existing development data automatically.
+
+[Supabase connection guidance](https://supabase.com/docs/guides/database/connecting-to-postgres) · [Row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security)
+
+## Constellation interface
+
+New visitors start with a learning-preference survey. A galaxy view shows one constellation per skill: a guitar or musical note, code brackets, a pencil, a mountain, a speech bubble, a book, or a compass for other interests. Drag (or use arrow keys while the sky is focused) to pan, use the zoom controls, and choose a skill to reveal the next practice. Home / Reset view recenters the sky.
+
+Practice counts illuminate additional stars and create branching connections; self-reported confidence adds brightness. These represent effort, not certified mastery. Deferring or closing a task never deducts progress. Existing browser and PostgreSQL data remain compatible with the redesign.
+
+## AI mentor prompt
+
+The canonical system prompt is [`ai/system-prompt.txt`](ai/system-prompt.txt). The Node server loads it directly, so editing this file and restarting the server updates the OpenAI instructions. [`ai/examples.json`](ai/examples.json) contains sample task and deferral requests and responses.
+
+The voice is concise, encouraging, and grounded. AI tasks target 60–120 seconds even when a longer session window is available; the duration is an estimate. Tasks contain one atomic action split into three brief instructions. Practical, retrieval, mind-mapping, and elaborative modes are supported, with flexible presentation preferences and adaptation from feedback. The optional `learning_mode` request field can choose a mode explicitly.
+
+`ai/plan-contract.js` validates generated JSON, reading length, method, and time estimate. Malformed or overly long responses use the existing curated fallback. The focused task preview is reused when practice starts, so its task matches the practice modal and does not trigger a second paid generation. Factual retrieval checks are hidden until the user enters an attempt, then shown on request. These checks are model-generated, not independent grading.
+
+Deferrals remain instant, local UI responses and do not spend API tokens or deduct progress. The prompt also defines an `action=defer` JSON format for a future AI-driven deferral route; the current `/api/plan` endpoint deliberately requests task generation only. Configure `OPENAI_API_KEY` in the server's ignored `.env` to activate OpenAI. No live paid-provider response has been verified without that key.
+
+The new mentor system prompt and strict micro-task contract apply to the OpenAI path. The existing Supabase/Gemini Edge Function remains available and keeps its own instructions and response contract.

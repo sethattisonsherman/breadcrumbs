@@ -141,3 +141,11 @@ test("simultaneous first saves allow exactly one writer", async () => {
   ]);
   assert.deepEqual(writes.map((r) => r.status).sort(), [200, 409]);
 });
+test("database tables have row security enabled for Supabase Data API clients", async () => {
+  const result = await admin.query(
+    "SELECT c.relname,c.relrowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=$1 AND c.relname IN ($2,$3,$4)",
+    [schema, "users", "sessions", "user_gardens"],
+  );
+  assert.equal(result.rows.length, 3);
+  assert(result.rows.every((r) => r.relrowsecurity));
+});

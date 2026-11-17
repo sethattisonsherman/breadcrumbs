@@ -1,28 +1,32 @@
 import pg from "pg";
 import { readFile } from "node:fs/promises";
 import { randomBytes, createHash } from "node:crypto";
-if (!process.env.DATABASE_URL)
-  throw new Error(
-    "DATABASE_URL is required. Copy .env.example to .env and configure PostgreSQL.",
-  );
-const schema = process.env.DATABASE_SCHEMA || "public";
-if (!/^[a-z][a-z0-9_]{0,62}$/.test(schema))
-  throw new Error("Invalid database schema name.");
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000,
-  options: `-c search_path=${schema}`,
-});
+import { databaseConfig } from "./db-config.js";
+const pool = new pg.Pool(databaseConfig());
 // Migrations are versioned with the application; no secrets belong in SQL files.
 export async function initializeDatabase() {
-  await pool.query(
-    await readFile(
-      new URL("./migrations/001_initial.sql", import.meta.url),
-      "utf8",
-    ),
-  );
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    // One migration runner at a time, including concurrent application starts.
+    await client.query(
+      "SELECT pg_advisory_xact_lock(hashtext(current_schema() || ':breadcrumbs-migrations'))",
+    );
+    for (const file of ["001_initial.sql", "002_server_only_access.sql"]) {
+      await client.query(
+        await readFile(
+          new URL("./migrations/" + file, import.meta.url),
+          "utf8",
+        ),
+      );
+    }
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
   await pool.query("DELETE FROM sessions WHERE expires_at < NOW()");
 }
 const hash = (t) => createHash("sha256").update(t).digest("hex");
@@ -71,11 +75,9 @@ export async function identity(req, res, next) {
     res.setHeader("Cache-Control", "no-store");
     next();
   } catch {
-    res
-      .status(503)
-      .json({
-        error: "Your database is taking a breather. Your browser copy is safe.",
-      });
+    res.status(503).json({
+      error: "Your database is taking a breather. Your browser copy is safe.",
+    });
   }
 }
 export function sameOrigin(req, res, next) {
@@ -158,12 +160,10 @@ export async function saveUser(req, res) {
       .json({ error: "Your progress could not be validated." });
   const serialized = JSON.stringify(state);
   if (serialized.length > 1000000)
-    return res
-      .status(413)
-      .json({
-        error:
-          "Please export your field notes; this garden is too large to save.",
-      });
+    return res.status(413).json({
+      error:
+        "Please export your field notes; this garden is too large to save.",
+    });
   try {
     // Compare-and-swap occurs inside one statement, including two simultaneous first saves.
     const result =
@@ -177,20 +177,15 @@ export async function saveUser(req, res) {
             [serialized, req.userId, revision],
           );
     if (!result.rows.length)
-      return res
-        .status(409)
-        .json({
-          error:
-            "This garden changed in another tab. Reload before making more changes.",
-        });
+      return res.status(409).json({
+        error:
+          "This garden changed in another tab. Reload before making more changes.",
+      });
     res.json({ revision: result.rows[0].revision, saved: true });
   } catch {
-    res
-      .status(503)
-      .json({
-        error:
-          "Your database save did not complete. Your browser copy is safe.",
-      });
+    res.status(503).json({
+      error: "Your database save did not complete. Your browser copy is safe.",
+    });
   }
 }
 export async function closeDatabase() {

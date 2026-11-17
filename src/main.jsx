@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Sprout,
+  Orbit,
+  Star,
   ArrowUpRight,
   ArrowRight,
   Plus,
@@ -37,6 +39,12 @@ import {
 } from "lucide-react";
 import { generatePlan } from "./planner";
 import "./styles.css";
+import {
+  Universe,
+  ConstellationGlyph,
+  colorFor,
+  shapeFor,
+} from "./constellations";
 const Icon = ({ name, ...p }) => {
   const C =
     {
@@ -65,17 +73,17 @@ const samples = [
   },
   {
     id: "demo-spanish",
-    name: "Everyday Spanish",
+    name: "Web development",
     icon: "language",
     color: "lavender",
-    track: "academic",
-    preference: "talking",
+    track: "hobby",
+    preference: "doing",
     minutes: 5,
     level: "beginner",
     sessions: 7,
     confidence: 4,
     tag: "A world of new words",
-    goal: "Have a conversation with someone new",
+    goal: "Build a little corner of the internet",
   },
   {
     id: "demo-art",
@@ -139,197 +147,15 @@ const prefs = [
     text: "It clicks when I explain it aloud.",
   },
 ];
-const stages = [
-  "Plant a seed",
-  "Find your footing",
-  "Build your rhythm",
-  "Branch out",
-  "Make it your own",
-  "Keep growing",
-];
-function Plant({ variant = 0, small = false }) {
-  return (
-    <svg
-      className={"plant " + (small ? "small" : "")}
-      viewBox="0 0 180 145"
-      fill="none"
-      aria-hidden="true"
-    >
-      <ellipse
-        cx="90"
-        cy="134"
-        rx="45"
-        ry="6"
-        fill="currentColor"
-        opacity=".08"
-      />
-      <path
-        d={
-          variant === 1
-            ? "M88 128C78 95 105 70 89 26"
-            : "M90 129C94 103 76 83 90 47"
-        }
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M88 100C66 102 47 88 48 69C68 68 86 79 88 100Z"
-        fill="currentColor"
-        opacity=".4"
-      />
-      <path
-        d="M89 81C112 85 133 66 130 46C110 46 93 60 89 81Z"
-        fill="currentColor"
-        opacity=".65"
-      />
-      <path
-        d="M87 59C67 58 58 42 62 27C81 29 92 42 87 59Z"
-        fill="currentColor"
-        opacity=".5"
-      />
-      {variant > 0 && (
-        <>
-          <path
-            d="M91 43C110 42 119 27 115 13C96 15 86 28 91 43Z"
-            fill="currentColor"
-            opacity=".6"
-          />
-          <path
-            d="M84 116C67 116 58 109 58 98C72 97 82 104 84 116Z"
-            fill="currentColor"
-            opacity=".5"
-          />
-        </>
-      )}
-      <path
-        d="M73 131L108 131"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <circle cx="137" cy="26" r="2" fill="currentColor" opacity=".3" />
-      <path
-        d="M37 47v8m-4-4h8"
-        stroke="currentColor"
-        opacity=".4"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-function HeroArt() {
-  return (
-    <svg
-      viewBox="0 0 480 260"
-      className="hero-art"
-      fill="none"
-      aria-hidden="true"
-    >
-      <ellipse cx="266" cy="226" rx="157" ry="14" fill="#dfe4d8" />
-      <path
-        d="M130 223C131 184 195 207 197 173S264 159 266 124S315 98 319 63"
-        stroke="#b8c5a9"
-        strokeWidth="2"
-        strokeDasharray="3 8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M126 225C126 208 115 196 121 175"
-        stroke="#68865c"
-        strokeWidth="2"
-      />
-      <path
-        d="M122 203C103 205 92 191 94 182C110 180 120 190 122 203Z"
-        fill="#b9c8a1"
-      />
-      <path
-        d="M122 191C137 192 150 180 148 170C133 168 123 178 122 191Z"
-        fill="#8ca57a"
-      />
-      <path
-        d="M269 218C275 180 257 155 270 119C280 90 266 70 282 34"
-        stroke="#6c805c"
-        strokeWidth="3"
-      />
-      <path
-        d="M269 166C231 170 206 147 210 121C245 120 265 141 269 166Z"
-        fill="#9bb78d"
-      />
-      <path
-        d="M271 143C311 148 338 121 334 94C300 91 277 111 271 143Z"
-        fill="#bfd0a1"
-      />
-      <path
-        d="M274 108C243 110 225 88 231 66C257 68 275 84 274 108Z"
-        fill="#b4c598"
-      />
-      <path
-        d="M277 79C310 82 330 62 325 40C299 40 281 56 277 79Z"
-        fill="#88a377"
-      />
-      <path
-        d="M279 51C260 43 258 23 267 10C288 22 290 37 279 51Z"
-        fill="#c8d4b0"
-      />
-      <path
-        d="M253 221h36"
-        stroke="#6c805c"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M356 225C354 206 367 194 363 177"
-        stroke="#8d916d"
-        strokeWidth="2"
-      />
-      <path
-        d="M359 208C378 209 386 199 384 188C371 187 360 196 359 208Z"
-        fill="#c1c9a2"
-      />
-      <path
-        d="M360 196C345 197 336 185 338 176C352 176 359 185 360 196Z"
-        fill="#a8b991"
-      />
-      <circle
-        cx="198"
-        cy="173"
-        r="7"
-        fill="#fcfaf5"
-        stroke="#b9a185"
-        strokeWidth="2"
-      />
-      <path d="M195 173l2 2 4-4" stroke="#9e8d70" strokeWidth="1.5" />
-      <circle
-        cx="266"
-        cy="124"
-        r="6"
-        fill="#f9f7ef"
-        stroke="#a3b58b"
-        strokeWidth="2"
-      />
-      <circle cx="319" cy="63" r="5" fill="#e8bb8e" />
-      <path
-        d="M172 72v10m-5-5h10M370 126v8m-4-4h8"
-        stroke="#c6ae85"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <circle cx="201" cy="44" r="2" fill="#aebd99" />
-      <circle cx="379" cy="57" r="2" fill="#c4af90" />
-      <path d="M394 156c9-14 17-11 17-11s-1 10-17 11Z" fill="#d9d6b6" />
-      <path d="M389 157c-11-7-10-15-10-15s10-1 10 15Z" fill="#b9c8a1" />
-    </svg>
-  );
-}
 function App() {
   const [data, setDataRaw] = useState(readData);
-  const [nav, setNav] = useState("today");
+  const [nav, setNav] = useState("universe");
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState("");
   const [minutes, setMinutes] = useState(data.profile.minutes || 5);
   const [selected, setSelected] = useState(null);
   const [status, setStatus] = useState(false);
+  const [focusPlan, setFocusPlan] = useState(null);
   const [dbReady, setDbReady] = useState(false);
   const [sync, setSync] = useState("connecting");
   const setData = (next) => {
@@ -434,15 +260,26 @@ function App() {
     setSelected(s.id);
     setMinutes(s.minutes);
     setModal(null);
-    setNav("garden");
-    setToast(`A little seed for ${s.name}. Your adventure starts here.`);
+    setNav("constellation");
+    setToast(`A new spark for ${s.name}. Your adventure starts here.`);
   };
   const start = (s = active) => {
     if (demo) {
       setModal({ type: "adventure", initial: s?.name || "" });
       return;
     }
-    if (s) setModal({ type: "session", skill: { ...s, minutes } });
+    if (s)
+      setModal({
+        type: "session",
+        skill: {
+          ...s,
+          minutes,
+          preparedPlan:
+            s.id === active?.id && focusPlan?.key === planKey
+              ? focusPlan.plan
+              : null,
+        },
+      });
     else setModal({ type: "adventure" });
   };
   const complete = (skill, reflection, rating, plan) => {
@@ -477,592 +314,455 @@ function App() {
         ...d.notes,
       ],
     }));
-    setToast("A little further than before. Your garden is growing.");
+    setToast(
+      "A little further than before. Your constellation is taking shape.",
+    );
   };
   const total = data.skills.reduce((n, s) => n + s.sessions, 0);
+  const surveyShown = useRef(false);
+  useEffect(() => {
+    if ((dbReady || sync === "offline") && demo && !surveyShown.current) {
+      surveyShown.current = true;
+      setModal({ type: "adventure" });
+    }
+  }, [dbReady, sync, demo]);
+  const openSkill = (skill) => {
+    setSelected(skill.id);
+    setMinutes(skill.minutes);
+    setNav("constellation");
+  };
+  const saveLabel =
+    sync === "connecting"
+      ? "Connecting your universe…"
+      : sync === "saving"
+        ? "Saving your universe…"
+        : sync === "saved"
+          ? "Your universe is saved"
+          : "Browser copy saved · database offline";
+  const planKey = active
+    ? JSON.stringify([active.id, active.feedback, active.preference, minutes])
+    : "";
+  const focusLoading =
+    nav === "constellation" && !demo && focusPlan?.key !== planKey;
+  useEffect(() => {
+    if (nav !== "constellation" || !active || demo) return;
+    const controller = new AbortController();
+    let live = true;
+    fetch("/api/plan", {
+      method: "POST",
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skill: active.name, ...active, minutes }),
+    })
+      .then((r) => {
+        if (!r.ok) throw Error();
+        return r.json();
+      })
+      .then((plan) => {
+        if (live) setFocusPlan({ key: planKey, plan });
+      })
+      .catch(() => {
+        if (live)
+          setFocusPlan({
+            key: planKey,
+            plan: {
+              ...generatePlan({ skill: active.name, ...active, minutes }),
+              source: "curated",
+              notice: "Your guide is offline. This practice is ready to use.",
+            },
+          });
+      });
+    return () => {
+      live = false;
+      controller.abort();
+    };
+  }, [nav, planKey, demo]);
+  const nextPlan =
+    active &&
+    (focusPlan?.key === planKey
+      ? focusPlan.plan
+      : {
+          ...generatePlan({ skill: active.name, ...active, minutes }),
+          source: "curated",
+        });
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <div className="ambient-sky" aria-hidden="true" />
+      <header className="topbar">
         <a
           href="#"
           className="brand"
           onClick={(e) => {
             e.preventDefault();
-            setNav("today");
+            setNav("universe");
           }}
         >
           <span className="brand-mark">
-            <Sprout size={24} />
+            <Orbit size={26} strokeWidth={1.2} />
           </span>
-          breadcrumbs<span className="brand-dot">.</span>
+          breadcrumbs<span className="brand-dot">✦</span>
         </a>
-        <div className="workspace-label">YOUR LITTLE CORNER</div>
-        <nav>
-          {[
-            { id: "today", label: "Today", icon: Sun },
-            { id: "garden", label: "My skill garden", icon: Sprout },
-            { id: "notes", label: "Field notes", icon: NotebookPen },
-          ].map((n) => (
-            <button
-              key={n.id}
-              className={"nav-item " + (nav === n.id ? "active" : "")}
-              onClick={() => {
-                setNav(n.id);
-                setSelected(null);
-              }}
-            >
-              <n.icon size={19} />
-              <span>{n.label}</span>
-              {n.id === "garden" && (
-                <span className="nav-count">{skills.length}</span>
-              )}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-skills">
-          <div className="section-label">
-            GROWING HERE{" "}
-            <button
-              aria-label="Add a skill"
-              onClick={() => setModal({ type: "adventure" })}
-            >
-              <Plus size={15} />
-            </button>
-          </div>
-          {skills.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => {
-                setSelected(s.id);
-                setNav("garden");
-              }}
-            >
-              <span className={"skill-dot " + s.color} />
-              {s.name}
-            </button>
-          ))}
-        </div>
-        <div className="sidebar-bottom">
-          <div className="slow-note">
-            <Sprout size={27} />
-            <p>
-              There’s no behind.
-              <br />
-              Only your own pace.
-            </p>
-            <span>A little is a lovely start.</span>
-          </div>
+        <nav className="main-nav" aria-label="Main navigation">
           <button
-            className="nav-item"
+            className={nav !== "notes" ? "active" : ""}
+            onClick={() => setNav("universe")}
+          >
+            <Orbit size={15} />
+            Your universe
+          </button>
+          <button
+            aria-label="Field notes"
+            className={nav === "notes" ? "active" : ""}
+            onClick={() => setNav("notes")}
+          >
+            <NotebookPen size={15} />
+            Field notes
+            {data.notes.length > 0 && <span>{data.notes.length}</span>}
+          </button>
+        </nav>
+        <div className="topbar-right">
+          <span className="no-rush">
+            <span />A little space to be curious.
+          </span>
+          <button
+            className="icon-button"
+            aria-label="Your preferences"
             onClick={() => setModal({ type: "settings" })}
           >
             <Settings size={18} />
-            <span>Your preferences</span>
           </button>
-          <div className="profile">
-            <span className="avatar">{demo ? "Y" : "✳"}</span>
-            <div>
-              <strong>Your space</strong>
-              <small>
-                {demo ? "A new adventure awaits" : "Growing at your own pace"}
-              </small>
-            </div>
-            <Leaf size={16} />
-          </div>
+          <button
+            className="user-avatar"
+            aria-label="About Breadcrumbs"
+            onClick={() => setModal({ type: "about" })}
+          >
+            Y<span />
+          </button>
         </div>
-      </aside>
-      <div className="page-wrap">
-        <header className="topbar">
-          <div>
-            <span className="mobile-brand">
-              <Sprout size={19} /> breadcrumbs
-            </span>
-            <span className="desktop-crumb">
-              Your space <ChevronRight size={12} />{" "}
-              <strong>
-                {nav === "today"
-                  ? "Today"
-                  : nav === "garden"
-                    ? "My skill garden"
-                    : "Field notes"}
-              </strong>
-            </span>
-          </div>
-          <div className="topbar-right">
-            <span className="quiet-pill">
-              <span />
-              Small steps. Real growth.
-            </span>
-            <button
-              className="round-button"
-              aria-label="Open preferences"
-              onClick={() => setModal({ type: "settings" })}
-            >
-              Y
-            </button>
-          </div>
-        </header>
-        <main>
-          <div className="page-heading">
-            <div>
-              <div className="eyebrow">
-                <Sun size={15} />
-                {nav === "today"
-                  ? "A GOOD DAY TO BEGIN"
-                  : nav === "garden"
-                    ? "ROOM TO GROW"
-                    : "NOTICING IS LEARNING"}
+      </header>
+      <main className={nav === "constellation" ? "focused-main" : ""}>
+        {nav === "universe" && (
+          <>
+            <div className="page-heading">
+              <div>
+                <span className="eyebrow">
+                  <span className="tiny-star">✦</span>
+                  {demo
+                    ? "A LITTLE PREVIEW OF WHAT’S POSSIBLE"
+                    : "A SPACE THAT’S ENTIRELY YOURS"}
+                </span>
+                <h1>Your curiosity has a universe.</h1>
+                <p>Follow a spark. Take a small step. See what lights up.</p>
               </div>
-              <h1>
-                {nav === "today" ? (
-                  <>
-                    A little today.
-                    <br />
-                    <span>A little further tomorrow.</span>
-                  </>
-                ) : nav === "garden" ? (
-                  "Your curiosity, taking root."
-                ) : (
-                  "Little notes. Lasting lessons."
-                )}
-              </h1>
-              <p>
-                {nav === "today"
-                  ? "Big things begin with small, unhurried steps. Let’s find yours."
-                  : nav === "garden"
-                    ? "Every skill starts with a seed. Give it a little time and see what grows."
-                    : "A place for discoveries, wobbly first attempts, and small wins."}
-              </p>
-            </div>
-            {nav !== "notes" && (
               <button
-                className="button outlined heading-add"
+                className="button primary"
                 onClick={() => setModal({ type: "adventure" })}
               >
                 <Plus size={16} />
-                Plant a new skill
+                {demo ? "Find my first constellation" : "Discover a skill"}
               </button>
-            )}
-          </div>
-          {nav === "today" && (
-            <>
-              <section className="welcome-card">
-                <div className="welcome-copy">
-                  <span className="tag">
-                    <Sprout size={13} />
-                    {demo
-                      ? "YOUR NEXT CHAPTER STARTS HERE"
-                      : "A LITTLE SPACE FOR YOU"}
-                  </span>
-                  <h2>
-                    {demo ? (
-                      <>
-                        What have you always
-                        <br />
-                        wanted to learn?
-                      </>
-                    ) : (
-                      <>
-                        Your next small step
-                        <br />
-                        is waiting for you.
-                      </>
-                    )}
-                  </h2>
-                  <p>
-                    {demo
-                      ? "Follow your curiosity. We’ll turn it into a gentle path, made of little moments that fit your life."
-                      : "No catching up. No falling behind. Just a few minutes with something that makes you curious."}
-                  </p>
-                  <button
-                    className="button primary"
-                    onClick={() =>
-                      demo ? setModal({ type: "adventure" }) : start()
-                    }
-                  >
-                    {demo ? "Find my path" : "Find my next step"}
-                    <ArrowRight size={17} />
-                  </button>
-                  <span className="micro-copy">
-                    {demo
-                      ? "A few questions. A path that feels like you."
-                      : "Come as you are. A little counts."}
-                  </span>
-                </div>
-                <div className="hero-visual">
-                  <HeroArt />
-                  <span className="art-note">
-                    good things take a little growing.
-                  </span>
-                  <span className="floating-leaf">
-                    <Leaf size={15} />
-                  </span>
-                </div>
-              </section>
-              <div className="dashboard-grid">
-                <div className="garden-section">
-                  <div className="section-title">
-                    <div>
-                      <h2>
-                        Your skill garden{" "}
-                        <span className="count-badge">{skills.length}</span>
-                      </h2>
-                      <p>
-                        {demo
-                          ? "A glimpse of what you could grow."
-                          : "A little attention goes a long way."}
-                      </p>
-                    </div>
-                    <button
-                      className="text-button"
-                      onClick={() => setNav("garden")}
-                    >
-                      View garden <ArrowUpRight size={15} />
-                    </button>
-                  </div>
-                  <div className="skill-cards">
-                    {skills.map((s) => (
-                      <SkillCard
-                        key={s.id}
-                        s={s}
-                        demo={demo}
-                        onClick={() => {
-                          setSelected(s.id);
-                          setNav("garden");
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <div className="gentle-banner">
-                    <span className="little-sun">
-                      <Sun size={20} />
-                    </span>
-                    <div>
-                      <strong>Your pace is the right pace.</strong>
-                      <p>
-                        Five minutes of curiosity is still five minutes of
-                        growth.
-                      </p>
-                    </div>
-                    <span className="banner-flower">
-                      <Flower2 size={38} strokeWidth={1} />
-                    </span>
-                  </div>
-                  <div className="how-section">
-                    <div className="section-title">
-                      <h2>A breadcrumb at a time</h2>
-                      <span className="eyebrow">
-                        LESS PRESSURE, MORE POSSIBILITY
-                      </span>
-                    </div>
-                    <div className="how-grid">
-                      {[
-                        {
-                          n: "01",
-                          title: "Follow a little curiosity",
-                          text: "A skill you’re drawn to. A path that’s yours.",
-                        },
-                        {
-                          n: "02",
-                          title: "Make a little space",
-                          text: "Small, thoughtful tasks that fit your day.",
-                        },
-                        {
-                          n: "03",
-                          title: "Watch a little grow",
-                          text: "See your efforts turn into something real.",
-                        },
-                      ].map((x) => (
-                        <div key={x.n}>
-                          <span>{x.n}</span>
-                          <h3>{x.title}</h3>
-                          <p>{x.text}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <aside className="today-panel">
-                  <div className="today-top">
-                    <span className="eyebrow">
-                      <Sparkles size={13} /> A BREADCRUMB FOR TODAY
-                    </span>
-                    {demo && <span className="example-label">PREVIEW</span>}
-                  </div>
-                  <div className="time-picker" aria-label="Practice time">
-                    {[2, 5, 10, 15].map((m) => (
-                      <button
-                        key={m}
-                        onClick={() => setMinutes(m)}
-                        className={m === minutes ? "selected" : ""}
-                      >
-                        {m} min
-                      </button>
-                    ))}
-                  </div>
-                  <span className="mini-label">
-                    {active?.name || "YOUR NEXT ADVENTURE"}
-                  </span>
-                  <h3>
-                    {active && /guitar/i.test(active.name)
-                      ? "Two chords. A little rhythm."
-                      : active
-                        ? generatePlan({ skill: active.name, ...active }).title
-                        : "A small step toward something new."}
-                  </h3>
-                  <p>
-                    {active && /guitar/i.test(active.name)
-                      ? "Get to know the switch between E minor and A minor. Slowly is exactly right."
-                      : "Make a little room for curiosity with one simple, focused practice."}
-                  </p>
-                  <div className="task-meta">
-                    <Clock size={14} />
-                    {minutes} gentle minutes<span>·</span>
-                    {active?.track === "academic"
-                      ? "Active recall"
-                      : "Hands-on practice"}
-                  </div>
-                  <button className="button dark" onClick={() => start()}>
-                    {demo ? "Make this path mine" : "Take this little step"}
-                    <ArrowRight size={16} />
-                  </button>
-                  <div className="task-footer">
-                    <Leaf size={13} />
-                    Enough for today. Really.
-                  </div>
-                  <div className="panel-divider" />
-                  <div className="quote-mark">“</div>
-                  <blockquote>
-                    You don’t have to see the whole path to take the first step.
-                  </blockquote>
-                  <div className="quote-decoration">
-                    ✧ <span>ONE BREADCRUMB AT A TIME</span> ✧
-                  </div>
-                </aside>
-              </div>
-            </>
-          )}
-          {nav === "garden" && (
-            <>
-              <div className="garden-toolbar">
+            </div>
+            <div className="universe-topline">
+              <div>
+                <span className="live-dot" />
+                {demo
+                  ? "EXAMPLE CONSTELLATIONS"
+                  : `${skills.length} CONSTELLATION${skills.length === 1 ? "" : "S"}`}
+                <span className="line-dot">·</span>
                 <span>
                   {demo
-                    ? "EXAMPLE GARDEN · START A PATH TO MAKE IT YOURS"
-                    : `${skills.length} SKILL${skills.length === 1 ? "" : "S"} TAKING ROOT · ${total} SMALL STEPS TAKEN`}
+                    ? "A FEW POSSIBLE DIRECTIONS"
+                    : `${total} SMALL STEP${total === 1 ? "" : "S"} TAKEN`}
                 </span>
-                <div>
-                  <Leaf size={14} /> No deadlines here
-                </div>
               </div>
-              <div className="garden-view-grid">
-                <div>
-                  <div className="skill-cards full">
-                    {skills.map((s) => (
-                      <SkillCard
-                        key={s.id}
-                        s={s}
-                        demo={demo}
-                        onClick={() => setSelected(s.id)}
-                        selected={active?.id === s.id}
-                      />
-                    ))}
-                  </div>
-                  {!skills.length && (
-                    <div className="empty-state">
-                      <Plant />
-                      <h2>A little possibility lives here.</h2>
-                      <p>
-                        Plant your first skill and we’ll find a place to begin.
-                      </p>
-                      <button
-                        className="button primary"
-                        onClick={() => setModal({ type: "adventure" })}
-                      >
-                        Find my path <ArrowRight size={16} />
-                      </button>
-                    </div>
-                  )}
-                  {active && (
-                    <section className="tree-panel">
-                      <div className="section-title">
-                        <div>
-                          <span className="eyebrow">
-                            THE PATH OF {active.name.toUpperCase()}
-                          </span>
-                          <h2>From a little seed to something more.</h2>
-                        </div>
-                        <span className="tag">
-                          {demo
-                            ? "Example progress"
-                            : `${active.sessions} steps taken`}
-                        </span>
-                      </div>
-                      <div className="tree-road">
-                        {stages.map((st, i) => {
-                          const reached =
-                            i <= Math.floor(active.confidence / 3);
-                          return (
-                            <div
-                              className={
-                                "tree-stage " + (reached ? "reached" : "")
-                              }
-                              key={st}
-                            >
-                              <span
-                                className={
-                                  "tree-node " +
-                                  (i === Math.floor(active.confidence / 3)
-                                    ? "current"
-                                    : "")
-                                }
-                              >
-                                {reached ? (
-                                  i === 0 ? (
-                                    <Sprout size={22} />
-                                  ) : (
-                                    <Check size={21} />
-                                  )
-                                ) : (
-                                  <Leaf size={19} />
-                                )}
-                              </span>
-                              <strong>{st}</strong>
-                              <small>
-                                {i === 0
-                                  ? "A place to begin"
-                                  : `${i * 3} confident practices`}
-                              </small>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <p className="tree-explainer">
-                        <Sprout size={15} />
-                        Your tree grows with confident practice. Revisiting a
-                        tricky step is growth, too.
-                      </p>
-                    </section>
-                  )}
-                </div>
-                {active && (
-                  <aside className="detail-panel">
-                    <span className={"detail-icon " + active.color}>
-                      <Icon name={active.icon} size={26} />
-                    </span>
-                    <span className="eyebrow">YOUR LITTLE WHY</span>
-                    <h2>
-                      {active.goal || `Make a little room for ${active.name}.`}
-                    </h2>
-                    <p>
-                      {demo
-                        ? "This is an example path. Start your own to shape it around your life."
-                        : `A ${active.minutes}-minute path, with ${prefs.find((p) => p.id === active.preference)?.title.toLowerCase()} activities to get you started.`}
-                    </p>
-                    {active.nextReview && (
-                      <div className="review-note">
-                        <Clock size={15} />
-                        {new Date(active.nextReview) <= new Date()
-                          ? "A good time to revisit your last step."
-                          : `A gentle review on ${new Date(active.nextReview).toLocaleDateString(undefined, { month: "short", day: "numeric" })}.`}
-                      </div>
-                    )}
-                    <button
-                      className="button primary"
-                      onClick={() => start(active)}
-                    >
-                      {demo ? "Start my own path" : "Take a little step"}
-                      <ArrowRight size={16} />
-                    </button>
-                    <button
-                      className="text-button adjust"
-                      onClick={() => setModal({ type: "settings" })}
-                    >
-                      Adjust your pace <Settings size={14} />
-                    </button>
-                  </aside>
-                )}
+              <span>
+                <Compass size={12} />
+                No finish line. Just a direction.
+              </span>
+            </div>
+            <Universe
+              skills={skills}
+              demo={demo}
+              onSelect={openSkill}
+              onAdd={() => setModal({ type: "adventure" })}
+            />
+            <div className="universe-bottomline">
+              <div className="legend">
+                <span>
+                  <i className="explored" />
+                  Explored
+                </span>
+                <span>
+                  <i className="current" />
+                  Your next star
+                </span>
+                <span>
+                  <i />
+                  Possibility
+                </span>
               </div>
-            </>
-          )}
-          {nav === "notes" && (
-            <>
-              <div className="notes-intro">
-                <NotebookPen size={24} />
+              <span className="sky-note">
+                You don’t need to see the whole sky to find your next star.
+              </span>
+            </div>
+            {demo && (
+              <div className="preview-callout">
+                <Sparkles size={16} />
                 <p>
-                  Your reflections become clues for what comes next.
-                  <br />
-                  <strong>No perfect words needed.</strong>
+                  This is a little inspiration. Your own universe begins with
+                  one skill.
                 </p>
-                <span>{data.notes.length} little discoveries</span>
+                <button onClick={() => setModal({ type: "adventure" })}>
+                  Make it mine <ArrowRight size={14} />
+                </button>
               </div>
-              {!data.notes.length ? (
-                <div className="empty-state notes-empty">
-                  <div className="note-illustration">
-                    <PenLine size={40} strokeWidth={1} />
-                    <Leaf size={22} />
-                  </div>
-                  <h2>Something to look back on.</h2>
-                  <p>
-                    After a little practice, leave yourself a note.
-                    <br />
-                    What surprised you? What would you try differently?
-                  </p>
-                  <button className="button primary" onClick={() => start()}>
-                    Take my first step <ArrowRight size={16} />
-                  </button>
+            )}
+          </>
+        )}
+        {nav === "constellation" && active && (
+          <>
+            <div className="constellation-breadcrumb">
+              <button
+                className="text-button"
+                onClick={() => setNav("universe")}
+              >
+                <ArrowLeft size={15} />
+                Back to your universe
+              </button>
+              <span>/</span>
+              <span>{active.name}</span>
+            </div>
+            <div className="focus-heading">
+              <div>
+                <span className="eyebrow" style={{ color: colorFor(active) }}>
+                  YOUR {shapeFor(active.name).toUpperCase()} CONSTELLATION
+                </span>
+                <h1>{active.name}</h1>
+                <p>
+                  {active.goal ||
+                    "A little curiosity. A constellation of possibilities."}
+                </p>
+              </div>
+              <span className="focus-count">
+                <Sparkles size={15} />
+                {active.sessions} little steps into your adventure
+              </span>
+            </div>
+            <div className="constellation-layout">
+              <section
+                className="detail-sky"
+                aria-label={`${active.name} skill constellation`}
+              >
+                <div className="detail-coordinates">
+                  <span>ONE STAR AT A TIME</span>
+                  <span>{demo ? "EXAMPLE PROGRESS" : "YOUR OWN PACE"}</span>
                 </div>
-              ) : (
-                <div className="notes-grid">
-                  {data.notes.map((n) => (
-                    <article className="note-card" key={n.id}>
-                      <div>
-                        <span className="tag">{n.skill}</span>
-                        <time>
-                          {new Date(n.date).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </time>
-                      </div>
-                      <h3>{n.title}</h3>
-                      <p>{n.text}</p>
-                      <span className="note-rating">
-                        <Leaf size={13} />
-                        {n.rating === "comfortable"
-                          ? "Feeling more confident"
-                          : n.rating === "stretch"
-                            ? "A useful stretch"
-                            : "A step in the right direction"}
-                      </span>
-                    </article>
+                <div className="detail-orbit" />
+                <ConstellationGlyph
+                  skill={active}
+                  interactive
+                  loading={focusLoading}
+                  onStart={() => start(active)}
+                />
+                <div className="constellation-caption">
+                  <span className="tag">
+                    <Star size={12} />
+                    {active.sessions === 0
+                      ? "A new beginning"
+                      : active.confidence > 2
+                        ? "Finding your orbit"
+                        : "A spark taking shape"}
+                  </span>
+                  <p>
+                    Each practice lights a star.
+                    <br />
+                    Every discovery makes a new connection.
+                  </p>
+                </div>
+                <span className="constellation-axis x-axis" />
+                <span className="constellation-axis y-axis" />
+              </section>
+              <aside className="next-step-panel">
+                <div className="next-step-kicker">
+                  <span className="pulse-dot" />
+                  YOUR NEXT STAR
+                  <span>
+                    {demo
+                      ? "PREVIEW"
+                      : String(active.sessions + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <h2>
+                  {focusLoading
+                    ? "Finding a comfortable next step…"
+                    : nextPlan.title}
+                </h2>
+                <p>{nextPlan.description}</p>
+                <label className="input-label">
+                  How much space do you have?
+                </label>
+                <div className="time-picker">
+                  {[2, 5, 10, 15].map((m) => (
+                    <button
+                      key={m}
+                      className={minutes === m ? "selected" : ""}
+                      onClick={() => setMinutes(m)}
+                    >
+                      {m} min
+                    </button>
                   ))}
                 </div>
-              )}
-            </>
-          )}
-          <footer>
-            <span>
-              <Sprout size={14} /> Made for the beautifully unfinished.
-            </span>
-            <span>
-              {sync === "connecting"
-                ? "Connecting your garden…"
-                : sync === "saving"
-                  ? "Saving your garden…"
-                  : sync === "saved"
-                    ? "Garden saved to your database"
-                    : "Saved in this browser · database offline"}{" "}
-              <span className="footer-dot">·</span>{" "}
-              <button onClick={() => setModal({ type: "about" })}>
-                The Breadcrumbs way <ArrowUpRight size={12} />
+                <div className="practice-method">
+                  <Sparkles size={14} />
+                  {nextPlan.method}
+                  <span>·</span>
+                  <Clock size={13} />
+                  {nextPlan.estimated_seconds
+                    ? "~" + Math.ceil(nextPlan.estimated_seconds / 60)
+                    : minutes}{" "}
+                  min
+                </div>
+                <button
+                  className="button primary full-width"
+                  disabled={focusLoading}
+                  onClick={() => start(active)}
+                >
+                  {demo ? "Begin my own adventure" : "Take this little step"}
+                  <ArrowUpRight size={17} />
+                </button>
+                <button
+                  className="text-button defer-button"
+                  onClick={() => {
+                    setNav("universe");
+                    setToast(
+                      "Your stars aren’t going anywhere. Come back when you have a little space.",
+                    );
+                  }}
+                >
+                  Not today. That’s okay.
+                  <ArrowRight size={13} />
+                </button>
+                <div className="panel-quiet">
+                  <Star size={15} />
+                  <p>
+                    No streaks to keep.
+                    <br />
+                    Your progress stays with you.
+                  </p>
+                </div>
+                {active.nextReview && (
+                  <div className="review-note">
+                    <RotateCcw size={13} />
+                    {new Date(active.nextReview) <= new Date()
+                      ? "A gentle review is ready whenever you are."
+                      : `A gentle review on ${new Date(active.nextReview).toLocaleDateString(undefined, { month: "short", day: "numeric" })}.`}
+                  </div>
+                )}
+              </aside>
+            </div>
+            <div className="constellation-footnote">
+              <span>
+                <Sparkles size={13} />
+                {active.confidence} confident practices. No deadline for the
+                next.
+              </span>
+              <button
+                className="text-button"
+                onClick={() => setModal({ type: "settings" })}
+              >
+                A different way to learn <Settings size={13} />
               </button>
-            </span>
-          </footer>
-        </main>
-      </div>
+            </div>
+          </>
+        )}
+        {nav === "notes" && (
+          <>
+            <div className="page-heading">
+              <div>
+                <span className="eyebrow">
+                  <NotebookPen size={13} />
+                  LITTLE DISCOVERIES, LASTING CONNECTIONS
+                </span>
+                <h1>Notes from your explorations.</h1>
+                <p>
+                  A place for first attempts, unexpected connections, and small
+                  wins.
+                </p>
+              </div>
+              <span className="notes-count">
+                {data.notes.length} little discoveries
+              </span>
+            </div>
+            {!data.notes.length ? (
+              <div className="empty-state">
+                <div className="empty-orbit">
+                  <NotebookPen size={32} strokeWidth={1} />
+                  <Sparkles size={20} />
+                </div>
+                <h2>There’s a story in every star.</h2>
+                <p>
+                  After a little practice, leave a thought for your future self.
+                  <br />
+                  What surprised you? What would you try differently?
+                </p>
+                <button
+                  className="button outlined"
+                  onClick={() =>
+                    demo ? setModal({ type: "adventure" }) : start()
+                  }
+                >
+                  Take a little step <ArrowRight size={15} />
+                </button>
+              </div>
+            ) : (
+              <div className="notes-grid">
+                {data.notes.map((n) => (
+                  <article className="note-card" key={n.id}>
+                    <div>
+                      <span className="tag">
+                        <Star size={10} />
+                        {n.skill}
+                      </span>
+                      <time>
+                        {new Date(n.date).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </time>
+                    </div>
+                    <h3>{n.title}</h3>
+                    <p>{n.text}</p>
+                    <span className="note-rating">
+                      <Sparkles size={12} />
+                      {n.rating === "comfortable"
+                        ? "A little more confident"
+                        : n.rating === "stretch"
+                          ? "A useful stretch"
+                          : "A step in your own direction"}
+                    </span>
+                  </article>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+        <footer>
+          <button onClick={() => setModal({ type: "about" })}>
+            <Orbit size={13} />
+            Small steps. A sky full of possibility.
+          </button>
+          <span className="save-indicator" role="status">
+            <span className={sync === "saved" ? "live-dot" : "offline-dot"} />
+            {saveLabel}
+          </span>
+          <span>
+            AT YOUR OWN PACE <span className="tiny-star">✦</span>
+          </span>
+        </footer>
+      </main>
       {toast && (
         <div className="toast" role="status">
-          <Check size={17} />
+          <Sparkles size={17} />
           {toast}
           <button
             aria-label="Dismiss notification"
@@ -1085,6 +785,12 @@ function App() {
               skill={modal.skill}
               onComplete={complete}
               onClose={() => setModal(null)}
+              onDefer={() => {
+                setModal(null);
+                setToast(
+                  "A pause is part of the journey. Your constellation will be right here.",
+                );
+              }}
             />
           ) : modal.type === "settings" ? (
             <Preferences
@@ -1103,79 +809,46 @@ function App() {
                 }));
                 setMinutes(profile.minutes);
                 setModal(null);
-                setToast("A path that moves with you. Preferences saved.");
+                setToast("A little more your own. Preferences saved.");
               }}
             />
           ) : (
             <div className="about-modal">
               <span className="modal-kicker">
-                <Sprout size={18} /> THE BREADCRUMBS WAY
+                <Orbit size={17} />
+                THE BREADCRUMBS WAY
               </span>
               <h2>
-                Small steps.
+                A whole universe.
                 <br />
-                Room to be human.
+                One small step.
               </h2>
               <p>
-                Choose something you’re curious about. Practice a tiny piece.
+                Follow something you’re curious about. Practice a tiny piece.
                 Notice what changed. Come back when you can.
+              </p>
+              <p>
+                Your skills become constellations. Each practice lights another
+                star, and new branches trace the connections you’re making.
+                Confidence adds a little more brightness.
               </p>
               <p>
                 Academic paths use retrieval and explanation. Hands-on paths use
                 small experiments and deliberate practice. Your preferences
-                shape how tasks are presented; reflection and confidence help
-                shape the next step.
+                shape the approach; your reflections help guide the next task.
               </p>
               <p>
-                There are no streaks to lose. A tree shows your practice
-                milestones, not a claim that you have mastered a skill.
+                There are no streaks to lose. Stars represent practice and
+                self-reported confidence, not certified mastery.
               </p>
               <button className="button primary" onClick={() => setModal(null)}>
-                That feels like my pace <Leaf size={16} />
+                That sounds like my kind of space <Sparkles size={16} />
               </button>
             </div>
           )}
         </Modal>
       )}
     </div>
-  );
-}
-function SkillCard({ s, demo, onClick, selected }) {
-  const progress = Math.min(100, Math.round((s.confidence / 15) * 100));
-  return (
-    <button
-      className={"skill-card " + s.color + (selected ? " is-selected" : "")}
-      onClick={onClick}
-    >
-      <div className="card-top">
-        <span className="card-icon">
-          <Icon name={s.icon} size={19} />
-        </span>
-        <span>
-          {demo
-            ? "EXAMPLE SKILL"
-            : s.track === "academic"
-              ? "LEARN & UNDERSTAND"
-              : "MAKE & EXPLORE"}
-          <ArrowUpRight size={13} />
-        </span>
-      </div>
-      <div className="plant-wrap">
-        <Plant variant={s.confidence > 2 ? 1 : 0} />
-        <span className="plant-stage">
-          {s.confidence >= 3 ? "Taking root" : "Just sprouting"}
-        </span>
-      </div>
-      <h3>{s.name}</h3>
-      <p>{s.tag || "A little curiosity, a little possibility"}</p>
-      <div className="progress-track">
-        <span style={{ width: `${progress}%` }} />
-      </div>
-      <div className="card-foot">
-        <span>{s.sessions} little steps</span>
-        <span>{progress}% grown</span>
-      </div>
-    </button>
   );
 }
 function Modal({ children, close, wide }) {
@@ -1242,6 +915,7 @@ function Modal({ children, close, wide }) {
 }
 function Adventure({ initial = "", profile, onFinish }) {
   const [step, setStep] = useState(0);
+  const scene = [2, 0, 1, 3, 4, 5][step];
   const [skill, setSkill] = useState(initial);
   const [track, setTrack] = useState("hobby");
   const [preference, setPreference] = useState(profile.preference || "doing");
@@ -1254,7 +928,7 @@ function Adventure({ initial = "", profile, onFinish }) {
   const titles = [
     "A little curiosity is all it takes.",
     "Two paths. Both lead somewhere.",
-    "How do you like to find your way?",
+    "How does your curiosity work?",
     "How much space feels good?",
     "Every adventure starts somewhere.",
     "Your first breadcrumb awaits.",
@@ -1287,8 +961,8 @@ function Adventure({ initial = "", profile, onFinish }) {
   return (
     <div className="adventure">
       <div className="adventure-top">
-        <Sprout size={21} />
-        <span>YOUR OWN LITTLE ADVENTURE</span>
+        <Sparkles size={21} />
+        <span>YOUR UNIVERSE STARTS HERE</span>
         <span>{step + 1} / 6</span>
       </div>
       <div className="adventure-progress">
@@ -1299,16 +973,16 @@ function Adventure({ initial = "", profile, onFinish }) {
       <span className="modal-kicker">
         {
           [
-            "THE SEED",
+            "YOUR SPARK",
             "THE DIRECTION",
             "YOUR WAY",
             "YOUR PACE",
             "YOUR STARTING POINT",
             "THE FIRST STEP",
-          ][step]
+          ][scene]
         }
       </span>
-      <h2>{titles[step]}</h2>
+      <h2>{titles[scene]}</h2>
       <p className="modal-description">
         {
           [
@@ -1318,10 +992,10 @@ function Adventure({ initial = "", profile, onFinish }) {
             "No daily commitment. Just a little time you might have when you visit.",
             "A little context helps us choose a comfortable first step.",
             "A gentle beginning, shaped around you. You can change direction any time.",
-          ][step]
+          ][scene]
         }
       </p>
-      {step === 0 && (
+      {scene === 0 && (
         <>
           <label className="input-label" htmlFor="skill">
             I’d love to learn…
@@ -1334,7 +1008,7 @@ function Adventure({ initial = "", profile, onFinish }) {
             value={skill}
             onChange={(e) => setSkill(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && skill.trim()) setStep(1);
+              if (e.key === "Enter" && skill.trim()) setStep(2);
             }}
           />
           <div className="suggestions">
@@ -1352,7 +1026,7 @@ function Adventure({ initial = "", profile, onFinish }) {
           </div>
         </>
       )}
-      {step === 1 && (
+      {scene === 1 && (
         <div className="option-grid">
           {[
             {
@@ -1377,7 +1051,7 @@ function Adventure({ initial = "", profile, onFinish }) {
           ))}
         </div>
       )}
-      {step === 2 && (
+      {scene === 2 && (
         <div className="option-grid">
           {prefs.map((o) => (
             <Option
@@ -1389,7 +1063,7 @@ function Adventure({ initial = "", profile, onFinish }) {
           ))}
         </div>
       )}
-      {step === 3 && (
+      {scene === 3 && (
         <div className="time-options">
           {[2, 5, 10, 15].map((m, i) => (
             <button
@@ -1418,14 +1092,14 @@ function Adventure({ initial = "", profile, onFinish }) {
           ))}
         </div>
       )}
-      {step === 4 && (
+      {scene === 4 && (
         <>
           <div className="level-options">
             {[
               {
                 id: "beginner",
                 text: "A fresh beginning",
-                sub: "I’m starting from the seed.",
+                sub: "I’m finding my first star.",
               },
               {
                 id: "some",
@@ -1465,7 +1139,7 @@ function Adventure({ initial = "", profile, onFinish }) {
           />
         </>
       )}
-      {step === 5 && plan && (
+      {scene === 5 && plan && (
         <div className="first-plan">
           <span className="tag">
             <Clock size={13} />
@@ -1475,7 +1149,7 @@ function Adventure({ initial = "", profile, onFinish }) {
           <h3>{plan.title}</h3>
           <p>{plan.description}</p>
           <div>
-            <Leaf size={15} />
+            <Star size={15} />
             {plan.method}
           </div>
           <small>Your path will adapt as you practice and reflect.</small>
@@ -1498,13 +1172,13 @@ function Adventure({ initial = "", profile, onFinish }) {
           </button>
         ) : (
           <span className="tiny-note">
-            <Leaf size={13} />
+            <Star size={13} />
             There’s no wrong answer.
           </span>
         )}
         <button
           className="button primary"
-          disabled={!skill.trim() || busy}
+          disabled={(step === 1 && !skill.trim()) || busy}
           onClick={() =>
             step < 4
               ? setStep(step + 1)
@@ -1543,7 +1217,7 @@ function Adventure({ initial = "", profile, onFinish }) {
           {busy
             ? "Finding your first step…"
             : step === 5
-              ? "Plant my skill"
+              ? "Light my first star"
               : step === 4
                 ? "Find my first step"
                 : "Follow this path"}
@@ -1568,17 +1242,21 @@ function Option({ icon: C, title, text, selected, onClick }) {
     </button>
   );
 }
-function Session({ skill, onComplete, onClose }) {
-  const [plan, setPlan] = useState(null);
+function Session({ skill, onComplete, onClose, onDefer }) {
+  const [plan, setPlan] = useState(skill.preparedPlan || null);
   const [phase, setPhase] = useState("practice");
   const [checked, setChecked] = useState([]);
   const [output, setOutput] = useState("");
   const [reflection, setReflection] = useState("");
   const [rating, setRating] = useState("just-right");
-  const [seconds, setSeconds] = useState(skill.minutes * 60);
+  const [seconds, setSeconds] = useState(
+    skill.preparedPlan?.estimated_seconds || skill.minutes * 60,
+  );
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
+  const [showAnswer, setShowAnswer] = useState(false);
   useEffect(() => {
+    if (skill.preparedPlan) return;
     let live = true;
     const controller = new AbortController();
     fetch("/api/plan", {
@@ -1592,7 +1270,10 @@ function Session({ skill, onComplete, onClose }) {
         return r.json();
       })
       .then((p) => {
-        if (live) setPlan(p);
+        if (live) {
+          setPlan(p);
+          if (p.estimated_seconds) setSeconds(p.estimated_seconds);
+        }
       })
       .catch(() => {
         if (live) {
@@ -1626,7 +1307,7 @@ function Session({ skill, onComplete, onClose }) {
   return (
     <div className="session">
       <span className="modal-kicker">
-        <Leaf size={16} />
+        <Star size={16} />
         {skill.name.toUpperCase()}
       </span>
       <h2>
@@ -1634,12 +1315,12 @@ function Session({ skill, onComplete, onClose }) {
           ? "One little step."
           : phase === "reflect"
             ? "What did you notice?"
-            : "A little more rooted."}
+            : "A little more connected."}
       </h2>
       {!plan ? (
         <div className="loading">
           <span className="loading-sprout">
-            <Sprout size={30} />
+            <Sparkles size={30} />
           </span>
           <p>Finding a comfortable place to begin…</p>
         </div>
@@ -1707,6 +1388,24 @@ function Session({ skill, onComplete, onClose }) {
                 : "I tried… and noticed…"
             }
           />
+          {plan.expected_answer && (
+            <div className="retrieval-check">
+              <button
+                className="button outlined"
+                disabled={!output.trim()}
+                onClick={() => setShowAnswer(true)}
+              >
+                {showAnswer
+                  ? "Answer check revealed"
+                  : "Reveal the answer check"}
+                <Eye size={14} />
+              </button>
+              {!output.trim() && (
+                <small>Try your answer above first. A guess is welcome.</small>
+              )}
+              {showAnswer && <p role="status">{plan.expected_answer}</p>}
+            </div>
+          )}
           <button
             className="button primary full-width"
             disabled={checked.length < 3 || !output.trim()}
@@ -1720,6 +1419,9 @@ function Session({ skill, onComplete, onClose }) {
           <p className="tiny-center">
             Check off your steps and capture one observation to continue.
           </p>
+          <button className="text-button session-defer" onClick={onDefer}>
+            Leave this for another day <ArrowRight size={13} />
+          </button>
         </>
       ) : phase === "reflect" ? (
         <>
@@ -1727,9 +1429,9 @@ function Session({ skill, onComplete, onClose }) {
           <label className="input-label">How did that feel?</label>
           <div className="rating-options">
             {[
-              { id: "stretch", label: "A bit of a stretch", emoji: "🌱" },
-              { id: "just-right", label: "Just right", emoji: "🌿" },
-              { id: "comfortable", label: "Feeling confident", emoji: "🌳" },
+              { id: "stretch", label: "A bit of a stretch", emoji: "☾" },
+              { id: "just-right", label: "Just right", emoji: "✦" },
+              { id: "comfortable", label: "Feeling confident", emoji: "✶" },
             ].map((r) => (
               <button
                 key={r.id}
@@ -1768,7 +1470,7 @@ function Session({ skill, onComplete, onClose }) {
               setPhase("done");
             }}
           >
-            Save this little win <Sprout size={17} />
+            Save this little win <Sparkles size={17} />
           </button>
           <button
             className="text-button back-practice"
@@ -1780,17 +1482,24 @@ function Session({ skill, onComplete, onClose }) {
         </>
       ) : (
         <div className="session-done">
-          <Plant variant={rating === "comfortable" ? 1 : 0} />
+          <ConstellationGlyph
+            skill={{
+              ...skill,
+              sessions: skill.sessions + 1,
+              confidence: skill.confidence + (rating === "comfortable" ? 1 : 0),
+            }}
+            celebrate
+          />
           <h3>You showed up. That counts.</h3>
           <p>
             {rating === "stretch"
               ? "Next time, we’ll make space for a smaller, gentler step."
               : rating === "comfortable"
-                ? "One confident practice, one little root a bit deeper."
+                ? "One confident practice, one more connection in your sky."
                 : "Your next step will build on what you noticed today."}
           </p>
           <button className="button primary" onClick={onClose}>
-            Back to my garden <ArrowRight size={16} />
+            Back to my constellation <ArrowRight size={16} />
           </button>
           <span>No streak to protect. Come back when you can.</span>
         </div>
@@ -1873,7 +1582,7 @@ function Preferences({ data, onSave, status, sync }) {
         <p>
           Skills and field notes are saved in the server’s PostgreSQL database,
           with a backup in this browser. Your private browser session keeps your
-          garden separate. Clearing cookies removes your access; export a copy
+          universe separate. Clearing cookies removes your access; export a copy
           to keep it. Practice details reach the AI provider only when an API
           key is configured.
         </p>
