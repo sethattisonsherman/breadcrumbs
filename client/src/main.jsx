@@ -411,7 +411,7 @@ function App() {
           <span className="brand-mark">
             <Orbit size={26} strokeWidth={1.2} />
           </span>
-          breadcrumbs<span className="brand-dot">✦</span>
+          constellations<span className="brand-dot">✦</span>
         </a>
         <nav className="main-nav" aria-label="Main navigation">
           <button
@@ -444,7 +444,7 @@ function App() {
           </button>
           <button
             className="user-avatar"
-            aria-label="About Breadcrumbs"
+            aria-label="About Constellations"
             onClick={() => setModal({ type: "about" })}
           >
             Y<span />
@@ -827,7 +827,7 @@ function App() {
             <div className="about-modal">
               <span className="modal-kicker">
                 <Orbit size={17} />
-                THE BREADCRUMBS WAY
+                THE CONSTELLATIONS WAY
               </span>
               <h2>
                 A whole universe.
@@ -910,7 +910,7 @@ function Modal({ children, close, wide }) {
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label="Your Breadcrumbs adventure"
+        aria-label="Your Constellations adventure"
       >
         <button
           className="close-modal"
@@ -1528,7 +1528,7 @@ function Preferences({ data, onSave, status, sync }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "my-breadcrumbs.json";
+    a.download = "my-constellations.json";
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }

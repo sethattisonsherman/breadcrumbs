@@ -125,10 +125,10 @@ const server = app.listen(
   "0.0.0.0",
   (error) => {
     if (error) {
-      console.error("Breadcrumbs could not bind its port.");
+      console.error("Constellations could not bind its port.");
       process.exit(1);
     }
-    console.log("Breadcrumbs is ready on port " + (process.env.PORT || 3000));
+    console.log("Constellations is ready on port " + (process.env.PORT || 3000));
   },
 );
 async function shutdown() {

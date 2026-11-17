@@ -1,4 +1,4 @@
-# Breadcrumbs
+# Constellations
 
 Website: https://sethattisonsherman.github.io/breadcrumbs/
 
@@ -90,7 +90,7 @@ The new mentor system prompt and strict micro-task contract apply to the OpenAI 
 
 ## GitHub Pages deployment
 
-GitHub Pages hosts static files. It cannot compile JSX or run the Node/PostgreSQL/AI API. The `Deploy Breadcrumbs to GitHub Pages` workflow installs dependencies, runs `npm run build:pages`, and deploys `dist/`. The same build also prepares root `index.html` and `assets/` for the existing branch-based publisher. The Pages build uses the `/breadcrumbs/` base path so JavaScript and CSS resolve under the repository URL.
+GitHub Pages hosts static files. It cannot compile JSX or run the Node/PostgreSQL/AI API. The `Deploy Constellations to GitHub Pages` workflow installs dependencies, runs `npm run build:pages`, and deploys `dist/`. The same build also prepares root `index.html` and `assets/` for the existing branch-based publisher. The Pages build uses the `/breadcrumbs/` base path so JavaScript and CSS resolve under the repository URL.
 
 The repository supports both Pages sources. With **GitHub Actions**, the workflow deploys `dist/`. With the existing **Deploy from a branch → main / (root)** setting, Pages serves the generated root `index.html` and `assets/`. Editable frontend files live in `client/`; Vite uses `client/index.html` for development. Run `npm run build:pages` and commit the generated root HTML/assets alongside source changes before pushing. No Pages administration permission is needed for the branch-based setup.
 
@@ -104,3 +104,5 @@ Keep `DATABASE_URL`, OpenAI/Gemini API keys, and Supabase proxy tokens only on t
 ### Local session while Supabase is unavailable
 
 Keep the Supabase connection in the ignored `.env`. To use a local PostgreSQL database for development, put only its local `DATABASE_URL` in an ignored `.env.local` and run `npm run dev:local`. The local override is loaded after `.env`; the production `npm start` command continues to use `.env` only. Database tests also prefer `.env.local` when present so development tests do not need to use the remote project. Never commit either environment file.
+
+The product is branded Constellations. The existing GitHub repository path, PostgreSQL/Docker identifiers, session cookie, and `breadcrumbs-v1` browser storage key remain compatible with existing deployments and saved progress.

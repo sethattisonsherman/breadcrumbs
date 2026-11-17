@@ -33,7 +33,7 @@ test.before(async () => {
       15000,
     );
     server.stdout.on("data", (b) => {
-      if (b.toString().includes("Breadcrumbs is ready")) {
+      if (b.toString().includes("Constellations is ready")) {
         clearTimeout(timeout);
         resolve();
       }

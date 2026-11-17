@@ -1,4 +1,4 @@
-name: Deploy Breadcrumbs to GitHub Pages
+name: Deploy Constellations to GitHub Pages
 
 on:
   push:

@@ -90,7 +90,7 @@ export function sameOrigin(req, res, next) {
     )
       return res
         .status(403)
-        .json({ error: "This request must come from your Breadcrumbs app." });
+        .json({ error: "This request must come from your Constellations app." });
     next();
   } catch {
     res.status(400).json({ error: "Invalid request origin." });
