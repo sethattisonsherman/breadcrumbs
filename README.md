@@ -1,5 +1,7 @@
 # Breadcrumbs
 
+link to website: https://sethattisonsherman.github.io/breadcrumbs/
+
 A quiet skill-building app: choose an adventure, try a small task, reflect, and watch a skill tree grow.
 
 ## Run on your computer
