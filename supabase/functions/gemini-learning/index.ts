@@ -82,13 +82,13 @@ Deno.serve(async (request) => {
     const { data: context, error } = await createSupabaseContext(request, {
       auth: "user",
     });
-    if (error || !context?.userClaims?.sub) {
+    if (error || !context?.userClaims?.id) {
       return Response.json({ error: "Please start a Supabase session." }, {
         status: 401,
         headers: corsHeaders,
       });
     }
-    userId = context.userClaims.sub;
+    userId = context.userClaims.id;
     supabaseAdmin = context.supabaseAdmin;
   }
 
@@ -172,3 +172,4 @@ Deno.serve(async (request) => {
     });
   }
 });
+
