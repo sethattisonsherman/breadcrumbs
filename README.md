@@ -20,6 +20,17 @@ The supplied Compose file binds PostgreSQL to loopback only and stores data in a
 
 Set `OPENAI_API_KEY` in `.env` and restart the server to enable the server-side OpenAI integration. `OPENAI_MODEL` defaults to `gpt-4.1-mini` and can be changed to a compatible model with JSON output support. A curated guide works without a key or when the provider is unavailable. The UI identifies which guide generated the task.
 
+### Gemini through Supabase
+
+The app can use Gemini through a Supabase Edge Function. The Gemini key stays in Supabase and is never returned to the app or browser. When the Supabase function is configured, it takes priority over the optional OpenAI integration above.
+
+1. In Supabase, open **Edge Functions → Secrets** and add `GEMINI_API_KEY`, `GEMINI_PROXY_TOKEN`, and optionally `GEMINI_MODEL`. Choose a Gemini model available on your API key's free tier. Generate a long random value for `GEMINI_PROXY_TOKEN`.
+2. Link this repository to your Supabase project with `supabase link --project-ref <project-ref>`, then deploy the function with `supabase functions deploy gemini-plan`.
+3. In the app server's private `.env` or host environment, set `SUPABASE_GEMINI_FUNCTION_URL=https://<project-ref>.supabase.co/functions/v1/gemini-plan` and `SUPABASE_GEMINI_FUNCTION_TOKEN` to the same random token used for `GEMINI_PROXY_TOKEN`.
+4. Restart the app server. `/api/status` will report the AI guide as configured.
+
+The function disables Supabase JWT verification because this app uses a private server-to-server token instead. Keep `SUPABASE_GEMINI_FUNCTION_TOKEN` only on the app server and `GEMINI_PROXY_TOKEN` in Supabase Edge Function secrets. Never put either token or `GEMINI_API_KEY` in frontend code. For local function development, put `GEMINI_API_KEY`, `GEMINI_PROXY_TOKEN`, and `GEMINI_MODEL` in `supabase/functions/.env`; that file is ignored by Git.
+
 API requests include the skill, learning preference, duration, prior experience, and previous feedback. No API secret is sent to the browser. Learning preferences guide presentation; they are not treated as fixed cognitive learning-style categories.
 
 ## Data and sessions
