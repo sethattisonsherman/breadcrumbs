@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { generatePlan } from "./planner";
 import "./styles.css";
+import { apiFetch, planFetch } from "./api";
 import {
   Universe,
   ConstellationGlyph,
@@ -159,7 +160,7 @@ function App() {
   const [dbReady, setDbReady] = useState(false);
   const [sync, setSync] = useState("connecting");
   const setData = (next) => {
-    setSync("saving");
+    setSync(dbReady ? "saving" : "local");
     setDataRaw(next);
   };
   const revision = useRef(0);
@@ -178,12 +179,16 @@ function App() {
     }
   }, [data]);
   useEffect(() => {
-    fetch("/api/user")
+    apiFetch("/api/user")
       .then((r) => {
         if (!r.ok) throw Error();
         return r.json();
       })
       .then((result) => {
+        if (result.localOnly) {
+          setSync("local");
+          return;
+        }
         revision.current = result.revision;
         if (result.state) {
           setData(result.state);
@@ -210,7 +215,7 @@ function App() {
         while (pending.current) {
           const snapshot = pending.current;
           pending.current = null;
-          const response = await fetch("/api/user", {
+          const response = await apiFetch("/api/user", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -239,7 +244,7 @@ function App() {
     return () => clearTimeout(timer);
   }, [data, dbReady]);
   useEffect(() => {
-    fetch("/api/status")
+    apiFetch("/api/status")
       .then((r) => r.json())
       .then((d) => setStatus(d.aiConfigured))
       .catch(() => {});
@@ -321,7 +326,11 @@ function App() {
   const total = data.skills.reduce((n, s) => n + s.sessions, 0);
   const surveyShown = useRef(false);
   useEffect(() => {
-    if ((dbReady || sync === "offline") && demo && !surveyShown.current) {
+    if (
+      (dbReady || sync === "offline" || sync === "local") &&
+      demo &&
+      !surveyShown.current
+    ) {
       surveyShown.current = true;
       setModal({ type: "adventure" });
     }
@@ -338,7 +347,9 @@ function App() {
         ? "Saving your universe…"
         : sync === "saved"
           ? "Your universe is saved"
-          : "Browser copy saved · database offline";
+          : sync === "local"
+            ? "Saved in this browser"
+            : "Browser copy saved · database offline";
   const planKey = active
     ? JSON.stringify([active.id, active.feedback, active.preference, minutes])
     : "";
@@ -348,7 +359,7 @@ function App() {
     if (nav !== "constellation" || !active || demo) return;
     const controller = new AbortController();
     let live = true;
-    fetch("/api/plan", {
+    planFetch("/api/plan", {
       method: "POST",
       signal: controller.signal,
       headers: { "Content-Type": "application/json" },
@@ -937,7 +948,7 @@ function Adventure({ initial = "", profile, onFinish }) {
     setBusy(true);
     setError("");
     try {
-      const r = await fetch("/api/plan", {
+      const r = await planFetch("/api/plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1259,7 +1270,7 @@ function Session({ skill, onComplete, onClose, onDefer }) {
     if (skill.preparedPlan) return;
     let live = true;
     const controller = new AbortController();
-    fetch("/api/plan", {
+    planFetch("/api/plan", {
       method: "POST",
       signal: controller.signal,
       headers: { "Content-Type": "application/json" },
@@ -1572,19 +1583,25 @@ function Preferences({ data, onSave, status, sync }) {
               ? "Live database connected"
               : sync === "saving"
                 ? "Saving to database…"
-                : "Database connection pending"}
+                : sync === "local"
+                  ? "Saved on this device"
+                  : "Database connection pending"}
           </strong>
-          <p>PostgreSQL · Private browser session · No account required</p>
+          <p>
+            {sync === "local"
+              ? "Cloud sync is not connected. Export your progress to keep a backup."
+              : "PostgreSQL · Private browser session · No account required"}
+          </p>
         </div>
       </div>
       <div className="settings-section">
         <h3>Your progress belongs to you.</h3>
         <p>
-          Skills and field notes are saved in the server’s PostgreSQL database,
-          with a backup in this browser. Your private browser session keeps your
-          universe separate. Clearing cookies removes your access; export a copy
-          to keep it. Practice details reach the AI provider only when an API
-          key is configured.
+          {sync === "local"
+            ? "Skills and field notes are saved in this browser. Use the export below to keep a copy. Cloud sync is not connected."
+            : "Skills and field notes are saved in the server’s PostgreSQL database, with a backup in this browser. Clearing cookies removes access to your private session; export a copy to keep it."}{" "}
+          Practice details reach the AI provider only when the server has an API
+          key configured.
         </p>
         <button className="button outlined" onClick={download}>
           <Download size={15} />

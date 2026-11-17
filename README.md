@@ -86,3 +86,16 @@ The voice is concise, encouraging, and grounded. AI tasks target 60–120 second
 Deferrals remain instant, local UI responses and do not spend API tokens or deduct progress. The prompt also defines an `action=defer` JSON format for a future AI-driven deferral route; the current `/api/plan` endpoint deliberately requests task generation only. Configure `OPENAI_API_KEY` in the server's ignored `.env` to activate OpenAI. No live paid-provider response has been verified without that key.
 
 The new mentor system prompt and strict micro-task contract apply to the OpenAI path. The existing Supabase/Gemini Edge Function remains available and keeps its own instructions and response contract.
+
+
+## GitHub Pages deployment
+
+GitHub Pages hosts static files. It cannot compile JSX or run the Node/PostgreSQL/AI API. The `Deploy Breadcrumbs to GitHub Pages` workflow installs dependencies, runs `npm run build:pages`, and deploys `dist/`. The Pages build uses the `/breadcrumbs/` base path so JavaScript and CSS resolve under the repository URL.
+
+In repository **Settings → Pages → Build and deployment**, choose **GitHub Actions** as the source. If this setting is still configured as `main / (root)`, GitHub publishes the source HTML instead of the Vite build, which produces a blank screen. Changing this setting requires repository Pages administration permission.
+
+Without a backend URL, the Pages build uses curated practice tasks and saves progress in the browser. Onboarding, practice, constellations, notes, and export remain usable. It does not claim to be connected to the database. Run `npm run build:pages && npm run test:pages` to verify this deployment mode locally.
+
+To connect a hosted Node backend, set the repository's **Actions variable** `VITE_API_BASE_URL` to its public HTTPS origin and rerun the deployment workflow. The backend must allow credentialed requests from `https://sethattisonsherman.github.io` and use cookie settings appropriate to that deployment. A Supabase project origin alone does not provide this app's `/api/user`, `/api/status`, or `/api/plan` routes. The project's Gemini Edge Function is an AI proxy, not those session/storage routes.
+
+Keep `DATABASE_URL`, OpenAI/Gemini API keys, and Supabase proxy tokens only on the backend or in private server environment variables. Never put them in `VITE_` build variables; those are visible to every visitor.
