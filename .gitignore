@@ -24,3 +24,7 @@ secrets/
 *.backup
 *.p12
 *.pfx
+supabase/.temp/
+.impeccable/config.local.json
+.impeccable/surface-body.md
+RESUME.md

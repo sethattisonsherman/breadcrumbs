@@ -2,7 +2,7 @@
 
 Website: https://sethattisonsherman.github.io/breadcrumbs/
 
-A quiet skill-building app: choose an adventure, explore a personal galaxy, try a small task, and watch skill-shaped constellations grow brighter.
+A focused learning app: answer a short preference survey, type what you want to learn into an open sky, and complete one activity at a time. Each completed lesson becomes a star in its subject's constellation.
 
 ## Run on your computer
 
@@ -45,7 +45,7 @@ The GitHub Pages build can call `gemini-learning` directly. It signs visitors in
 
 The function validates a user JWT inside its handler because it also retains the old private server-token path. Do not remove that check or place `GEMINI_PROXY_TOKEN` in a browser variable. The daily cap is per anonymous user; CAPTCHA and Supabase Auth limits help discourage automated account creation.
 
-API requests include the skill, learning preference, duration, prior experience, and previous feedback. No API secret is sent to the browser. Learning preferences guide presentation; they are not treated as fixed cognitive learning-style categories.
+API requests include the subject, ranked learning preferences, duration, prior experience, recent lessons and feedback. The app computes a deterministic three-phase framework and Gemini fills its activities. No API secret is sent to the browser. Learning preferences guide presentation; they are not fixed cognitive learning-style categories.
 
 ## Data and sessions
 
@@ -62,9 +62,9 @@ For an internet-facing launch, add account sign-in, account recovery, and a prod
 - `npm run build`: creates the production frontend.
 - `npm start`: serves the production build and API.
 - `npm test`: tests PostgreSQL persistence, session isolation, conflicting writes, request validation, and curated task generation. Uses a temporary PostgreSQL schema and removes it afterward. The test database user needs schema creation permission.
-- `npm run test:browser`: tests onboarding, completing a task, field notes, database restoration, session isolation, and responsive overflow. Requires Chromium (`CHROMIUM_PATH` overrides `/usr/bin/chromium`).
+- `npm run test:browser`: checks onboarding, lesson resumption/completion, history, database restoration, session isolation and responsive overflow. AI responses are mocked; requires a configured test database and an installed Chrome/Edge/Chromium browser (`CHROMIUM_PATH` overrides detection).
 
-There are no streak penalties. Practice sessions count as steps; the tree's milestones reflect self-reported confident practice and do not certify mastery. AI task generation requires a configured key and has not been validated against a paid provider in this environment.
+There are no streak penalties. Stars represent completed lessons and effort, not certified mastery. Offline practice is identified explicitly when Gemini is unavailable.
 
 
 ## Supabase (database only)
@@ -83,9 +83,17 @@ Do not put database URLs in `VITE_` variables or frontend code. The live Supabas
 
 ## Constellation interface
 
-New visitors start with a learning-preference survey. A galaxy view shows one constellation per skill: a guitar or musical note, code brackets, a pencil, a mountain, a speech bubble, a book, or a compass for other interests. Drag (or use arrow keys while the sky is focused) to pan, use the zoom controls, and choose a skill to reveal the next practice. Home / Reset view recenters the sky.
+New visitors answer six untimed situational questions. Only the question and its text choices appear over the stars. Every answer contributes equally; recent answers resolve tied preference scores. The survey ranks hands-on practice, worked examples, reading/reflection and explaining aloud.
 
-Practice counts illuminate additional stars and create branching connections; self-reported confidence adds brightness. These represent effort, not certified mastery. Deferring or closing a task never deducts progress. Existing browser and PostgreSQL data remain compatible with the redesign.
+Home centers “What do you want to learn?” over a transparent text field. Enter or the arrow begins a lesson, with three activities shown one at a time. Leaving saves the current activity and response so it can be resumed without another generation. Completing the final response contracts the lesson into a star before a summary fades in.
+
+A new subject gets its first star only after its first completed lesson. Later completions connect additional stars. Select a constellation to continue the subject; select an individual star or history entry to revisit a lesson. Completion IDs prevent double-clicks from adding duplicate stars. Existing progress is retained, and retaking the survey preserves lessons.
+
+Settings holds the ranked preferences, survey retake, session duration and JSON export. “Try a different approach” in a completion summary changes the presentation order for that subject's next lesson. Reduced motion removes scene movement and uses a static completion moment.
+
+The shared/learning.js module owns the survey and all 24 ranked frameworks. Each has orientation, an attempt, and retrieval/reflection. The server and Gemini function recompute the framework from validated preferences. A recent history of up to three lessons helps the guide move forward. These are presentation scaffolds, not a diagnosis or an assessment of mastery.
+
+For database-free verification, run Node's test runner against tests/async.test.js, tests/learning.test.js, tests/journey.test.js, tests/framework-provider.test.js, tests/ai-plan.test.js and tests/db-config.test.js. The browser scripts detect Chrome, Edge or Chromium; CHROMIUM_PATH overrides detection. The Pages browser regression script expects an offline build with the Supabase browser settings unset so it does not require a CAPTCHA or spend AI requests.
 
 ## AI mentor prompt
 
@@ -93,7 +101,7 @@ The canonical system prompt is [`ai/system-prompt.txt`](ai/system-prompt.txt). T
 
 The voice is concise, encouraging, and grounded. AI tasks target 60–120 seconds even when a longer session window is available; the duration is an estimate. Tasks contain one atomic action split into three brief instructions. Practical, retrieval, mind-mapping, and elaborative modes are supported, with flexible presentation preferences and adaptation from feedback. The optional `learning_mode` request field can choose a mode explicitly.
 
-`ai/plan-contract.js` validates generated JSON, reading length, method, and time estimate. Malformed or overly long responses use the existing curated fallback. The focused task preview is reused when practice starts, so its task matches the practice modal and does not trigger a second paid generation. Factual retrieval checks are hidden until the user enters an attempt, then shown on request. These checks are model-generated, not independent grading.
+`ai/plan-contract.js` validates OpenAI JSON, reading length, method, and time estimate. Gemini retains its five-field response contract with validated content and exactly three steps. Both providers receive the canonical ranked framework. Invalid responses use curated offline practice. Generated lessons are persisted and reused when resumed. OpenAI retrieval checks remain hidden until a response is entered, then can be revealed on request; they are model-generated examples, not independent grading.
 
 Deferrals remain instant, local UI responses and do not spend API tokens or deduct progress. The prompt also defines an `action=defer` JSON format for a future AI-driven deferral route; the current `/api/plan` endpoint deliberately requests task generation only. Configure `OPENAI_API_KEY` in the server's ignored `.env` to activate OpenAI. No live paid-provider response has been verified without that key.
 
@@ -106,9 +114,9 @@ GitHub Pages hosts static files. It cannot compile JSX or run the Node/PostgreSQ
 
 The repository supports both Pages sources. With **GitHub Actions**, the workflow deploys `dist/`. With the existing **Deploy from a branch → main / (root)** setting, Pages serves the generated root `index.html` and `assets/`. Editable frontend files live in `client/`; Vite uses `client/index.html` for development. Run `npm run build:pages` and commit the generated root HTML/assets alongside source changes before pushing. No Pages administration permission is needed for the branch-based setup.
 
-Without a Node backend URL or Supabase browser settings, the Pages build uses curated practice tasks and saves progress in the browser. With the two Supabase browser settings, it calls the Gemini Edge Function and still saves progress in the browser. Onboarding, practice, constellations, notes, and export remain usable in either mode. Run `npm run build:pages && npm run test:pages` to verify the Pages build locally.
+Without a Node backend URL or Supabase browser settings, the Pages build uses curated practice and saves progress in the browser. With Supabase browser settings it calls the Gemini Edge Function and still saves progress in the browser. The survey, lessons, constellations, history and export work in either mode. The Pages browser regression expects an offline build with public Supabase/Turnstile variables set to empty strings; CI builds this fixture before rebuilding the production site with its existing public settings.
 
-The Pages workflow uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to call Gemini through the Edge Function. The optional `VITE_API_BASE_URL` path remains available for a separately hosted Node backend, which provides cross-device PostgreSQL storage. A Supabase project URL alone does not provide the app's `/api/user` route.
+The Pages workflow uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to call Gemini through the Edge Function. Vite reads environment files from the repository root; ignored `.env.pages.local` can hold public settings for local Pages builds. The optional `VITE_API_BASE_URL` path supports a separately hosted Node backend with PostgreSQL storage tied to a private browser session. A Supabase project URL alone does not provide the app's `/api/user` route.
 
 Keep `DATABASE_URL`, OpenAI/Gemini API keys, and Supabase proxy tokens only on the backend or in private server environment variables. Never put them in `VITE_` build variables; those are visible to every visitor.
 

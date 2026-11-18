@@ -1,6 +1,10 @@
 import { readFile } from "node:fs/promises";
 import express from "express";
-import { generatePlan } from "./client/src/planner.js";
+import {
+  generatePlan,
+  hasValidPreferenceRanking,
+  preparePlanInput,
+} from "./client/src/planner.js";
 import { validateAIPlan } from "./ai/plan-contract.js";
 import {
   identity,
@@ -20,20 +24,37 @@ app.use(express.json({ limit: "1mb" }));
 app.use("/api", sameOrigin);
 app.get("/api/user", identity, getUser);
 app.put("/api/user", identity, saveUser);
-const hasGeminiFunction = Boolean(process.env.SUPABASE_GEMINI_FUNCTION_URL && process.env.SUPABASE_GEMINI_FUNCTION_TOKEN);
+const hasGeminiFunction = Boolean(
+  process.env.SUPABASE_GEMINI_FUNCTION_URL &&
+  process.env.SUPABASE_GEMINI_FUNCTION_TOKEN,
+);
 app.get("/api/status", (_, res) =>
-  res.json({ aiConfigured: hasGeminiFunction || Boolean(process.env.OPENAI_API_KEY) }),
+  res.json({
+    aiConfigured: hasGeminiFunction || Boolean(process.env.OPENAI_API_KEY),
+  }),
 );
 app.post("/api/plan", async (req, res) => {
-  const { skill, minutes, preference, track, level, feedback, learning_mode } =
-    req.body || {};
+  const {
+    skill,
+    minutes,
+    preference,
+    ranking,
+    track,
+    level,
+    feedback,
+    learning_mode,
+    prior_practice,
+  } = req.body || {};
   if (
     typeof skill !== "string" ||
     !skill.trim() ||
     skill.length > 100 ||
     ![2, 5, 10, 15].includes(minutes) ||
     !["hobby", "academic"].includes(track) ||
-    !["doing", "watching", "reading", "talking"].includes(preference) ||
+    (preference !== undefined &&
+      !["doing", "watching", "reading", "talking"].includes(preference)) ||
+    (ranking !== undefined && !hasValidPreferenceRanking(ranking)) ||
+    (preference === undefined && ranking === undefined) ||
     !["beginner", "some", "confident"].includes(level) ||
     (learning_mode !== undefined &&
       !["practical", "retrieval", "mind_mapping", "elaborative"].includes(
@@ -43,53 +64,74 @@ app.post("/api/plan", async (req, res) => {
     return res
       .status(400)
       .json({ error: "Please check your skill and learning preferences." });
-  const input = {
-    action: "task",
+  const input = preparePlanInput({
     ...(learning_mode ? { learning_mode } : {}),
     skill: skill.trim(),
     minutes,
     preference,
+    ranking,
     track,
     level,
     feedback: typeof feedback === "string" ? feedback.slice(0, 600) : "",
-  };
+    prior_practice,
+  });
   const fallback = generatePlan(input);
   if (!hasGeminiFunction && !process.env.OPENAI_API_KEY)
     return res.json({ ...fallback, source: "curated" });
   try {
     let plan;
     if (hasGeminiFunction) {
-      const response=await fetch(process.env.SUPABASE_GEMINI_FUNCTION_URL,{
-        method:'POST',signal:AbortSignal.timeout(25000),headers:{'Content-Type':'application/json','x-gemini-proxy-token':process.env.SUPABASE_GEMINI_FUNCTION_TOKEN},body:JSON.stringify(input)
+      const response = await fetch(process.env.SUPABASE_GEMINI_FUNCTION_URL, {
+        method: "POST",
+        signal: AbortSignal.timeout(25000),
+        headers: {
+          "Content-Type": "application/json",
+          "x-gemini-proxy-token": process.env.SUPABASE_GEMINI_FUNCTION_TOKEN,
+        },
+        body: JSON.stringify(input),
       });
-      if(!response.ok)throw new Error('Gemini provider');
-      plan=await response.json();
+      if (!response.ok) throw new Error("Gemini provider");
+      plan = await response.json();
       // Preserve the Edge Function's existing five-field response contract.
-      if(!plan||!['title','description','method','reflection'].every(k=>typeof plan[k]==='string'&&plan[k].length<600)||!Array.isArray(plan.steps)||plan.steps.length!==3||!plan.steps.every(step=>typeof step==='string'&&step.length<600))throw new Error('Invalid Gemini task');
+      if (
+        !plan ||
+        !["title", "description", "method", "reflection"].every(
+          (k) => typeof plan[k] === "string" && plan[k].length < 600,
+        ) ||
+        !Array.isArray(plan.steps) ||
+        plan.steps.length !== 3 ||
+        !plan.steps.every(
+          (step) => typeof step === "string" && step.length < 600,
+        )
+      )
+        throw new Error("Invalid Gemini task");
     } else {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      signal: AbortSignal.timeout(20000),
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-        response_format: { type: "json_object" },
-        max_completion_tokens: 650,
-        messages: [
-          {
-            role: "system",
-            content: AI_SYSTEM_PROMPT,
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          signal: AbortSignal.timeout(20000),
+          headers: {
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
           },
-          { role: "user", content: JSON.stringify(input) },
-        ],
-      }),
-    });
-    if (!response.ok) throw new Error("provider");
-    const body = await response.json();
-    plan = validateAIPlan(JSON.parse(body.choices[0].message.content));
+          body: JSON.stringify({
+            model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+            response_format: { type: "json_object" },
+            max_completion_tokens: 650,
+            messages: [
+              {
+                role: "system",
+                content: AI_SYSTEM_PROMPT,
+              },
+              { role: "user", content: JSON.stringify(input) },
+            ],
+          }),
+        },
+      );
+      if (!response.ok) throw new Error("provider");
+      const body = await response.json();
+      plan = validateAIPlan(JSON.parse(body.choices[0].message.content));
     }
     res.json({ ...plan, source: "ai" });
   } catch {
@@ -128,7 +170,9 @@ const server = app.listen(
       console.error("Constellations could not bind its port.");
       process.exit(1);
     }
-    console.log("Constellations is ready on port " + (process.env.PORT || 3000));
+    console.log(
+      "Constellations is ready on port " + (process.env.PORT || 3000),
+    );
   },
 );
 async function shutdown() {

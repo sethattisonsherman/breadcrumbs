@@ -24,6 +24,19 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Verify learning contracts and progress compatibility
+        run: node --test tests/async.test.js tests/learning.test.js tests/journey.test.js tests/framework-provider.test.js tests/ai-plan.test.js tests/db-config.test.js
+      - name: Build offline browser regression fixture
+        run: npm run build:pages
+        env:
+          VITE_SUPABASE_URL: ""
+          VITE_SUPABASE_PUBLISHABLE_KEY: ""
+          VITE_TURNSTILE_SITE_KEY: ""
+          VITE_API_BASE_URL: ""
+      - name: Verify the complete Pages learning journey
+        run: npm run test:pages
+        env:
+          CHROMIUM_PATH: /usr/bin/google-chrome
       - name: Build the production frontend
         run: npm run build:pages
         env:
@@ -36,6 +49,7 @@ jobs:
         with:
           path: dist
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

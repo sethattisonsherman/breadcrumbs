@@ -1,4 +1,5 @@
 import { generatePlan } from "./planner";
+import { withAbort } from "../../shared/async.js";
 
 const base = (import.meta.env.VITE_API_BASE_URL || "")
   .trim()
@@ -25,9 +26,11 @@ export function completeCaptchaChallenge(token) {
 export function cancelCaptchaChallenge() {
   captchaRequest?.reject(new Error("CAPTCHA check was cancelled."));
   captchaRequest = undefined;
+  window.dispatchEvent(new Event("constellations:captcha-dismissed"));
 }
 
-function requestCaptchaToken() {
+function requestCaptchaToken(signal) {
+  signal?.throwIfAborted();
   if (!turnstileSiteKey) return Promise.resolve(undefined);
   if (captchaRequest) return captchaRequest.promise;
 
@@ -39,7 +42,13 @@ function requestCaptchaToken() {
   });
   captchaRequest = { promise, resolve, reject };
   window.dispatchEvent(new Event("constellations:captcha-required"));
-  return promise;
+  const abort = () => {
+    if (captchaRequest?.promise === promise) cancelCaptchaChallenge();
+  };
+  signal?.addEventListener("abort", abort, { once: true });
+  return withAbort(promise, signal).finally(() =>
+    signal?.removeEventListener("abort", abort),
+  );
 }
 
 function getSupabaseClient() {
@@ -52,13 +61,17 @@ function getSupabaseClient() {
   return supabaseClientPromise;
 }
 
-async function ensureAnonymousSession() {
+async function ensureAnonymousSession(signal) {
   const supabase = await getSupabaseClient();
-  const { data: current, error: sessionError } = await supabase.auth.getSession();
+  signal?.throwIfAborted();
+  const { data: current, error: sessionError } =
+    await supabase.auth.getSession();
   if (sessionError) throw sessionError;
+  signal?.throwIfAborted();
   if (current.session) return current.session;
 
-  const captchaToken = await requestCaptchaToken();
+  const captchaToken = await requestCaptchaToken(signal);
+  signal?.throwIfAborted();
   const { data, error } = await supabase.auth.signInAnonymously({
     options: captchaToken ? { captchaToken } : {},
   });
@@ -69,7 +82,8 @@ async function ensureAnonymousSession() {
 
 async function callSupabaseGemini(options = {}) {
   const supabase = await getSupabaseClient();
-  await ensureAnonymousSession();
+  await withAbort(ensureAnonymousSession(options.signal), options.signal);
+  options.signal?.throwIfAborted();
   const input = JSON.parse(options.body || "{}");
   const { data, error } = await supabase.functions.invoke("gemini-learning", {
     body: input,
@@ -136,15 +150,33 @@ export async function apiFetch(path, options = {}) {
 
 // A missing server or unavailable AI should never block a small practice.
 export async function planFetch(path, options = {}) {
+  // A missing network response must not leave an empty sky indefinitely.
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, AbortSignal.timeout(30000)])
+    : AbortSignal.timeout(30000);
   try {
-    const response = await apiFetch(path, options);
+    const response = await withAbort(
+      apiFetch(path, { ...options, signal }),
+      signal,
+    );
     if (!response.ok) throw Error();
     const data = await response.clone().json();
     if (data.source === "pause") return response;
     if (
-      typeof data.title !== "string" ||
+      !["title", "description", "method", "reflection"].every(
+        (key) =>
+          typeof data[key] === "string" &&
+          data[key].trim().length > 0 &&
+          data[key].length < 600,
+      ) ||
       !Array.isArray(data.steps) ||
-      data.steps.length !== 3
+      data.steps.length !== 3 ||
+      !data.steps.every(
+        (step) =>
+          typeof step === "string" &&
+          step.trim().length > 0 &&
+          step.length < 600,
+      )
     )
       throw Error();
     return response;
