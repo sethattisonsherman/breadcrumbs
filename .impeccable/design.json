@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-18T17:52:58Z",
+  "title": "Design System: Constellations",
+  "extensions": {
+    "colorMeta": {
+      "night": {
+        "role": "neutral",
+        "displayName": "Midnight sky",
+        "canonical": "#080d18",
+        "tonalRamp": [
+          "#080d18",
+          "#101827",
+          "#1a2637",
+          "#2a374a",
+          "#46556e",
+          "#73819a",
+          "#a8b5ca",
+          "#edf0f6"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Soft ink",
+        "canonical": "#edf0f6",
+        "tonalRamp": [
+          "#080d18",
+          "#101827",
+          "#1a2637",
+          "#46556e",
+          "#73819a",
+          "#a8b5ca",
+          "#d4dce9",
+          "#edf0f6"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Distant text",
+        "canonical": "#a8b5ca",
+        "tonalRamp": [
+          "#080d18",
+          "#101827",
+          "#1a2637",
+          "#2a374a",
+          "#46556e",
+          "#73819a",
+          "#a8b5ca",
+          "#edf0f6"
+        ]
+      },
+      "moonlight": {
+        "role": "primary",
+        "displayName": "Moonlight blue",
+        "canonical": "#b9d3ef",
+        "tonalRamp": [
+          "#0c1422",
+          "#17263a",
+          "#233b56",
+          "#3b5e82",
+          "#6488ae",
+          "#8eb1d4",
+          "#b9d3ef",
+          "#edf5ff"
+        ]
+      },
+      "star": {
+        "role": "secondary",
+        "displayName": "Fine star",
+        "canonical": "#e0eafa",
+        "tonalRamp": [
+          "#080d18",
+          "#101827",
+          "#1a2637",
+          "#46556e",
+          "#73819a",
+          "#a8b5ca",
+          "#c7d8ed",
+          "#e0eafa"
+        ]
+      },
+      "dialog": {
+        "role": "neutral",
+        "displayName": "Dialog night",
+        "canonical": "#0c1422",
+        "tonalRamp": [
+          "#080d18",
+          "#0c1422",
+          "#101827",
+          "#1a2637",
+          "#2a374a",
+          "#46556e",
+          "#73819a",
+          "#a8b5ca"
+        ]
+      },
+      "notice": {
+        "role": "neutral",
+        "displayName": "Notice blue",
+        "canonical": "#162135",
+        "tonalRamp": [
+          "#080d18",
+          "#101827",
+          "#162135",
+          "#23334d",
+          "#3b4c68",
+          "#61718c",
+          "#94a1b6",
+          "#d2d9e4"
+        ]
+      },
+      "divider": {
+        "role": "neutral",
+        "displayName": "Quiet divider",
+        "canonical": "#a8b5ca29",
+        "tonalRamp": [
+          "#080d18",
+          "#101827",
+          "#1a2637",
+          "#2a374a",
+          "#46556e",
+          "#73819a",
+          "#a8b5ca",
+          "#edf0f6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Manrope display",
+        "purpose": "Main page and lesson headings."
+      },
+      "body": {
+        "displayName": "Manrope body",
+        "purpose": "Lesson prose and readable content."
+      },
+      "label": {
+        "displayName": "Manrope labels",
+        "purpose": "Controls and supporting details."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "scene-fade",
+        "value": "320ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Fade the active scene out and the next scene in."
+      },
+      {
+        "name": "summary-arrival",
+        "value": "650ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Fade the completion summary into view."
+      },
+      {
+        "name": "lesson-to-star",
+        "value": "1000ms cubic-bezier(0.7, 0, 0.84, 0)",
+        "purpose": "Contract the completed lesson into its star."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile",
+        "value": "650px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Survey Choice",
+      "kind": "button",
+      "refersTo": "survey-choice",
+      "description": "Unboxed centered answer in the one-at-a-time survey.",
+      "html": "<button class=\"ds-survey-choice\">A quiet moment to reflect</button>",
+      "css": ".ds-survey-choice { min-height: 48px; padding: 10px 16px; color: #a8b5ca; background: transparent; border: 0; border-radius: 0; font: 400 clamp(0.95rem, 1.6vw, 1.1rem)/1.7 Manrope, sans-serif; cursor: pointer; transition: color 180ms, background 180ms; } .ds-survey-choice:hover { color: #edf0f6; background: #b9d3ef0a; } .ds-survey-choice:focus-visible { color: #edf0f6; outline: 2px solid #b9d3ef; outline-offset: 7px; }"
+    },
+    {
+      "name": "Text Button",
+      "kind": "button",
+      "refersTo": "text-button",
+      "description": "Quiet navigation or secondary action within a lesson.",
+      "html": "<button class=\"ds-text-button\">Continue</button>",
+      "css": ".ds-text-button { min-height: 44px; padding: 8px 0; display: inline-flex; align-items: center; gap: 12px; color: #a8b5ca; background: transparent; border: 0; border-radius: 0; font: 400 0.9rem/1.7 Manrope, sans-serif; cursor: pointer; transition: color 180ms, background 180ms; } .ds-text-button:hover { color: #fff; } .ds-text-button:focus-visible { outline: 2px solid #b9d3ef; outline-offset: 7px; }"
+    },
+    {
+      "name": "Open Curiosity Input",
+      "kind": "input",
+      "refersTo": "open-input",
+      "description": "Transparent centered field for expressing a learning curiosity.",
+      "html": "<label class=\"ds-open-input-wrap\"><span class=\"ds-open-input-label\">What do you want to learn?</span><input class=\"ds-open-input\" placeholder=\"Type into open space\" /></label>",
+      "css": ".ds-open-input-wrap { width: 100%; max-width: 560px; display: block; position: relative; margin: 25px auto 0; } .ds-open-input-label { display: block; margin-bottom: 10px; color: #edf0f6; font: 450 1rem/1.4 Manrope, sans-serif; } .ds-open-input { width: 100%; min-height: 62px; padding: 10px 48px; color: #b9d3ef; caret-color: #b9d3ef; background: transparent; border: 0; border-radius: 0; text-align: center; font: 400 clamp(1.4rem, 2.6vw, 2.1rem)/1.4 Manrope, sans-serif; letter-spacing: -0.02em; } .ds-open-input::placeholder { color: #a8b5ca; opacity: 1; } .ds-open-input:focus-visible { outline: 0; } .ds-open-input-wrap:focus-within::after { content: ''; position: absolute; left: 30%; right: 30%; bottom: 0; border-bottom: 1px solid #b9d3ef33; pointer-events: none; }"
+    },
+    {
+      "name": "Feedback Choice",
+      "kind": "button",
+      "refersTo": "feedback-choice",
+      "description": "Compact bordered response for lesson feedback.",
+      "html": "<button class=\"ds-feedback-choice\" aria-pressed=\"false\">Just right</button>",
+      "css": ".ds-feedback-choice { min-height: 44px; margin: 0 12px 10px 0; padding: 10px 14px; color: #a8b5ca; background: transparent; border: 1px solid #a8b5ca50; border-radius: 3px; font: 400 0.82rem/1.7 Manrope, sans-serif; cursor: pointer; transition: color 180ms, background 180ms; } .ds-feedback-choice:hover { color: #edf0f6; } .ds-feedback-choice:focus-visible { outline: 2px solid #b9d3ef; outline-offset: 4px; } .ds-feedback-choice[aria-pressed=\"true\"] { color: #edf0f6; border-color: #b9d3ef; background: #b9d3ef0d; }"
+    },
+    {
+      "name": "Lesson History Star Row",
+      "kind": "custom",
+      "refersTo": "history-row",
+      "description": "A completed lesson row marked by a small star and fine divider.",
+      "html": "<button class=\"ds-history-row\"><span class=\"ds-history-star\" aria-hidden=\"true\"></span><span class=\"ds-history-copy\">How night skies help us navigate<small class=\"ds-history-meta\">Completed lesson</small></span></button>",
+      "css": ".ds-history-row { width: 100%; min-height: 70px; padding: 15px 2px; display: flex; align-items: center; gap: 20px; color: #edf0f6; background: transparent; border: 0; border-bottom: 1px solid #a8b5ca29; text-align: left; font: 400 0.9rem/1.7 Manrope, sans-serif; cursor: pointer; transition: color 180ms, background 180ms; } .ds-history-row:hover { color: #fff; } .ds-history-row:focus-visible { outline: 2px solid #b9d3ef; outline-offset: 4px; } .ds-history-star { width: 4px; height: 4px; flex: 0 0 4px; border-radius: 50%; background: #edf0f6; } .ds-history-copy { flex: 1; } .ds-history-meta { display: block; margin-top: 6px; color: #a8b5ca; font-size: 0.72rem; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "A lesson becoming a star",
+    "overview": "The interface is a sparse midnight sky for self-directed learning. Manrope and pale text sit directly in open space, with fine stars giving the dark field depth. The survey, curiosity prompt, and lesson activity each take the center of attention in turn. Questions fade between situations; a learner writes into open space; completed work contracts into a star before its summary appears. The sky records completed effort as a revisitable constellation. Keep content unboxed where the current surface uses open text; panels are reserved for dialogs and notices.",
+    "keyCharacteristics": [
+      "Sparse centered composition, midnight blue, fine stars.",
+      "Unboxed choices and open-space writing.",
+      "Pale blue focus, restrained fades, lesson-to-star completion."
+    ],
+    "rules": [
+      {
+        "name": "The Sky-First Rule",
+        "body": "Keep the night field dominant; use moonlight blue to direct attention rather than decorate every control.",
+        "section": "colors"
+      },
+      {
+        "name": "The Open-Space Rule",
+        "body": "Text and choices sit directly on the sky unless the interface is an actual dialog or notice.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep each survey view to one centered question and its choices.",
+      "Do preserve the transparent home input, keyboard focus, and reduced-motion support.",
+      "Do let each completed lesson become one star in its subject constellation."
+    ],
+    "donts": [
+      "Don't add survey headers, meters, panels, or prepopulated constellations.",
+      "Don't put ordinary lesson and survey content in cards.",
+      "Don't use streak penalties or imply that stars certify mastery."
+    ]
+  }
+}
